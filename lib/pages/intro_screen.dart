@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'home_page.dart';
+import 'home_page_camera.dart';
 
 class IntroScreen extends StatelessWidget {
-  const IntroScreen({super.key});
+  const IntroScreen({Key? key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFF8058FA),
       body: SafeArea(
         child: Column(
           children: [
@@ -20,27 +20,30 @@ class IntroScreen extends StatelessWidget {
                 top: 120,
                 bottom: 20,
               ),
-              child: Image.asset('lib/images/avocado.png'),
+              child: Image.asset('lib/images/vr_logo.png'),
             ),
 
             // we deliver groceries at your doorstep
             Padding(
               padding: const EdgeInsets.all(28.0),
               child: Text(
-                'We deliver groceries at your doorstep',
+                'VR Lense',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.notoSerif(
-                    fontSize: 36, fontWeight: FontWeight.bold),
+                style: GoogleFonts.poppins(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
 
             // groceree gives you fresh vegetables and fruits
             Text(
-              'Fresh items everyday',
+              'Get to know the world',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey[700],
+                color: const Color.fromARGB(255, 206, 189, 189),
               ),
             ),
 
@@ -54,22 +57,22 @@ class IntroScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) {
-                    return HomePage();
+                    return GalleryAccess();
                   },
                 ),
               ),
               child: Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: const Color.fromARGB(255, 112, 91, 222),
+                  borderRadius: BorderRadius.circular(20),
+                  color: const Color.fromARGB(255, 255, 255, 255),
                 ),
                 child: const Text(
                   "Get Started",
                   style: TextStyle(
-                    color: Colors.white,
-                    // fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    color: Color(0xFF8058FA),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
                   ),
                 ),
               ),

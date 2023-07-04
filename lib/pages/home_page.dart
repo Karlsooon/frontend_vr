@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../components/grocery_item_tile.dart';
 import '../model/cart_model.dart';
 import 'cart_page.dart';
+import 'package:camera/camera.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
