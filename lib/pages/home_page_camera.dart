@@ -1,7 +1,8 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'caption_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -36,8 +37,8 @@ class _GalleryAccessState extends State<GalleryAccess> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gallery and Camera Access'),
-        backgroundColor: Color.fromARGB(255, 47, 66, 210),
-        actions: const [],
+        backgroundColor: const Color.fromARGB(255, 47, 66, 210),
+        actions: [],
       ),
       body: Stack(
         children: [
@@ -55,7 +56,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
                   color: Colors.grey[300],
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.photo_library),
+                child: const Icon(Icons.photo_library),
               ),
             ),
           ),
@@ -73,7 +74,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
                   color: Colors.grey[300],
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.camera_alt),
+                child: const Icon(Icons.camera_alt),
               ),
             ),
           ),
@@ -97,6 +98,40 @@ class _GalleryAccessState extends State<GalleryAccess> {
       setState(() {
         galleryFile = File(pickedFile.path);
       });
+
+      // Send the image to the backend
+      await sendImageToBackend(galleryFile!);
+    }
+  }
+
+  Future<void> sendImageToBackend(File imageFile) async {
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://localhost:8000/image-caption'),
+    );
+    request.files.add(
+      await http.MultipartFile.fromPath('file', imageFile.path),
+    );
+
+    try {
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        // Successful response
+        var caption = await response.stream.bytesToString();
+        // Display the caption in a new page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CaptionPage(caption: caption.toString()),
+          ),
+        );
+      } else {
+        // Handle other response codes
+        print('Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Handle request or network error
+      print('Error: $e');
     }
   }
 }
