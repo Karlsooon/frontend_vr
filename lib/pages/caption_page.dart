@@ -1,45 +1,63 @@
-import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+
 
 class CaptionPage extends StatelessWidget {
-  final String caption;
+  final File imageFile;
 
-  const CaptionPage({required this.caption});
+  const CaptionPage({required this.imageFile});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Image Caption'),
+        backgroundColor: Color.fromARGB(255, 47, 66, 210),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Text(
-            _extractCaptionText(),
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Poppins',
-            ),
-          ),
-        ),
+      body: FutureBuilder(
+        future: fetchImageCaption(imageFile),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return const Center(child: Text('Error occurred'));
+          } else {
+            return SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  snapshot.data ?? 'No caption available',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+            );
+          }
+        },
       ),
     );
   }
 
-  String _extractCaptionText() {
+  Future<String> fetchImageCaption(File imageFile) async {
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://localhost:8000/image-caption'),
+    );
+    request.files.add(
+      await http.MultipartFile.fromPath('file', imageFile.path),
+    );
+
     try {
-      var jsonMap = json.decode(caption) as Map<String, dynamic>;
-      var captions = jsonMap['captions'] as List<dynamic>;
-      if (captions.isNotEmpty) {
-        var firstCaption = captions.first;
-        return firstCaption['caption'] ?? '';
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        var caption = await response.stream.bytesToString();
+        return caption;
+      } else {
+        return 'Error: ${response.statusCode}';
       }
     } catch (e) {
-      // Handle JSON decoding errors or missing data here
-      print('Error while decoding JSON: $e');
+      return 'Error: $e';
     }
-    return 'Caption not available';
   }
 }

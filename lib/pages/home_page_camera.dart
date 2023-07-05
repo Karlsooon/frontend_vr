@@ -37,8 +37,8 @@ class _GalleryAccessState extends State<GalleryAccess> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gallery and Camera Access'),
-        backgroundColor: const Color.fromARGB(255, 47, 66, 210),
-        actions: [],
+        backgroundColor: Color.fromARGB(255, 47, 66, 210),
+        actions: const [],
       ),
       body: Stack(
         children: [
@@ -99,8 +99,13 @@ class _GalleryAccessState extends State<GalleryAccess> {
         galleryFile = File(pickedFile.path);
       });
 
-      // Send the image to the backend
+      // Send the image to the backend and navigate to the caption page
       await sendImageToBackend(galleryFile!);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => CaptionPage(imageFile: galleryFile!)),
+      );
     }
   }
 
@@ -118,19 +123,13 @@ class _GalleryAccessState extends State<GalleryAccess> {
       if (response.statusCode == 200) {
         // Successful response
         var caption = await response.stream.bytesToString();
-        // Display the caption in a new page
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CaptionPage(caption: caption.toString()),
-          ),
-        );
+        // Display or process the caption as needed
+        print('Caption: $caption');
       } else {
         // Handle other response codes
         print('Error: ${response.statusCode}');
       }
     } catch (e) {
-      // Handle request or network error
       print('Error: $e');
     }
   }
