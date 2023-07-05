@@ -112,25 +112,40 @@ class _GalleryAccessState extends State<GalleryAccess> {
   Future<void> sendImageToBackend(File imageFile) async {
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://localhost:8000/image-caption'),
+      Uri.parse('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyC9P-soLqC2RKaixM8JlP41A4LNf0YwxaQ'),
     );
-    request.files.add(
-      await http.MultipartFile.fromPath('file', imageFile.path),
-    );
+          request.files.add(
+        await http.MultipartFile.fromPath('file', imageFile.path),
+      );
 
-    try {
-      var response = await request.send();
-      if (response.statusCode == 200) {
-        // Successful response
-        var caption = await response.stream.bytesToString();
-        // Display or process the caption as needed
-        print('Caption: $caption');
-      } else {
-        // Handle other response codes
-        print('Error: ${response.statusCode}');
+      try {
+        var response = await request.send();
+        if (response.statusCode == 200) {
+          // Successful response
+          var responseJson = await response.stream.bytesToString();
+          // Parse the JSON response
+          var caption = parseCaption(responseJson);
+          // Display or process the caption as needed
+          print('Caption: $caption');
+        } else {
+          // Handle other response codes
+          print('Error: ${response.statusCode}');
+        }
+      } catch (e) {
+        print('Error: $e');
       }
-    } catch (e) {
-      print('Error: $e');
     }
-  }
+
+    String parseCaption(String responseJson) {
+      // Parse the JSON response and extract the caption
+      // Modify this method based on the structure of your response JSON
+      // For example, if the response JSON has a key "caption" containing the caption string, you can use:
+      // var jsonResponse = jsonDecode(responseJson);
+      // var caption = jsonResponse['caption'];
+      // return caption;
+
+      // For testing purposes, return a dummy caption
+      return 'Dummy Caption';
+    }
 }
+

@@ -1,8 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-
 
 class CaptionPage extends StatelessWidget {
   final File imageFile;
@@ -29,7 +28,11 @@ class CaptionPage extends StatelessWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
                   snapshot.data ?? 'No caption available',
-                  style: TextStyle(fontSize: 18),
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 32,
+                  ),
                 ),
               ),
             );
@@ -51,7 +54,9 @@ class CaptionPage extends StatelessWidget {
     try {
       var response = await request.send();
       if (response.statusCode == 200) {
-        var caption = await response.stream.bytesToString();
+        var jsonResponse = await response.stream.bytesToString();
+        var parsedResponse = json.decode(jsonResponse);
+        var caption = parsedResponse['captions'];
         return caption;
       } else {
         return 'Error: ${response.statusCode}';
