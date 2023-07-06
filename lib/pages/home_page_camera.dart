@@ -112,46 +112,58 @@ class _GalleryAccessState extends State<GalleryAccess> {
   }
 
   Future<void> annotateImage(File imagePath, String apiKey) async {
-    final url = Uri.parse(
-        'https://vision.googleapis.com/v1/images:annotate?key=$apiKey');
+  final url = Uri.parse(
+      'https://vision.googleapis.com/v1/images:annotate?key=$apiKey');
 
-    final imageBytes = await imagePath.readAsBytes();
-    final base64Image = base64Encode(imageBytes);
+  final imageBytes = await imagePath.readAsBytes();
+  final base64Image = base64Encode(imageBytes);
 
-    final requestBody = jsonEncode({
-      'requests': [
-        {
-          'image': {'content': base64Image},
-          'features': [
-            {'type': 'LABEL_DETECTION'},
-            {'type': 'TEXT_DETECTION'},
-            {'type': 'FACE_DETECTION'},
-            {'type': 'WEB_DETECTION'},
-            {'type': 'PRODUCT_SEARCH'},
+  final requestBody = jsonEncode({
+    'requests': [
+      {
+        'image': {'content': base64Image},
+        'features': [
+          {'type': 'WEB_DETECTION'},
+          {'type': 'FACE_DETECTION'},
+        ],
+      },
+    ],
+  });
 
-            // Add more feature types as needed
-          ],
-        },
-      ],
-    });
+  final response = await http.post(url, body: requestBody);
 
-    final response = await http.post(url, body: requestBody);
+  if (response.statusCode == 200) {
+    // Successful response
+    final jsonResponse = jsonDecode(response.body);
+    print(response.body.toString());
+    print("*****************************************");
+    debugPrint(response.body.toString());
+    print("*****************************************");
 
-    if (response.statusCode == 200) {
-      // Successful response
-      final jsonResponse = jsonDecode(response.body);
-      print(response.body.toString());
-      print("*****************************************");
-      debugPrint(response.body.toString());
-      print("*****************************************");
+    // Extract the top 5 words with the highest scores
+    final webEntities = jsonResponse['responses'][0]['webDetection']['webEntities'];
+    final sortedEntities = List.from(webEntities);
+    sortedEntities.sort((a, b) => b['score'].compareTo(a['score']));
+    final top5Words = sortedEntities.take(5).toList();
+
+    if (top5Words.isNotEmpty) {
+      for (var word in top5Words) {
+        final wordDescription = word['description'];
+        print('Word: $wordDescription');
+      }
     } else {
-      // Handle other response codes
-      print('Error: ${response.body}');
+      print('No words found');
     }
+  } else {
+    // Handle other response codes
+    print('Error: ${response.body}');
   }
+}
+
+
 
   Future<void> sendImageToBackend(File imageFile) async {
-    annotateImage(imageFile, 'AIzaSyC9P-soLqC2RKaixM8JlP41A4LNf0YwxaQ');
+    annotateImage(imageFile, 'AIzaSyCYP2i5j5TOs3k8MwmFnvGVqoE0amU52A0');
     return;
     var request = http.MultipartRequest(
       'POST',
