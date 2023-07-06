@@ -218,11 +218,23 @@ Future<String> generateHistoryParagraph(List<String> wordList) async {
 
   final prompt = 'The five main words are: ${wordList.join(", ")}';
   final requestBody = jsonEncode({
+<<<<<<< HEAD
     'prompt': prompt,
     'max_tokens': 100,
     'temperature': 0.7,
     'n': 3,
     'stop': ['Flutter:Word:', 'null']
+=======
+    'requests': [
+      {
+        'image': {'content': base64Image},
+        'features': [
+          {'type': 'WEB_DETECTION'},
+          // {'type': 'FACE_DETECTION'},
+        ],
+      },
+    ],
+>>>>>>> 2a5106de6b6d91ffac794cf9e3eb17d6353775f2
   });
 
   final response = await http.post(
