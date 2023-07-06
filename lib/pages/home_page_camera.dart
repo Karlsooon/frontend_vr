@@ -2,10 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'caption_page.dart';
 import 'dart:convert';
-import 'dart:developer';
-import 'chat_history.dart';
 
 void main() {
   runApp(const MyApp());
@@ -114,13 +111,6 @@ class _GalleryAccessState extends State<GalleryAccess> {
       } else {
         print('No words found');
       }
-
-      // Navigator.push(
-      //   context,
-      //   MaterialPageRoute(
-      //     builder: (context) => CaptionPage(imageFile: galleryFile!),
-      //   ),
-      // );
     }
   }
 
@@ -212,81 +202,45 @@ class _GalleryAccessState extends State<GalleryAccess> {
     }
   }
 
-Future<String> generateHistoryParagraph(List<String> wordList) async {
-  final apiKey = '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'; // Replace with your OpenAI API key
-  final url = 'https://api.openai.com/v1/engines/text-davinci-003/completions'; // Use the Davinci-Codex model
+  Future<String> generateHistoryParagraph(List<String> wordList) async {
+    final apiKey =
+        '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'; // Replace with your OpenAI API key
+    final url =
+        'https://api.openai.com/v1/engines/text-davinci-003/completions'; // Use the Davinci-Codex model
 
-  final prompt = 'The five main words are: ${wordList.join(", ")}';
-  final requestBody = jsonEncode({
-<<<<<<< HEAD
-    'prompt': prompt,
-    'max_tokens': 100,
-    'temperature': 0.7,
-    'n': 3,
-    'stop': ['Flutter:Word:', 'null']
-=======
-    'requests': [
-      {
-        'image': {'content': base64Image},
-        'features': [
-          {'type': 'WEB_DETECTION'},
-          // {'type': 'FACE_DETECTION'},
-        ],
+    final prompt = 'The five main words are: ${wordList.join(", ")}';
+    final requestBody = jsonEncode({
+      'prompt': prompt,
+      'max_tokens': 100,
+      'temperature': 0.7,
+      'n': 1,
+      'stop': ['Flutter:Word:', 'null']
+    });
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $apiKey',
       },
-    ],
->>>>>>> 2a5106de6b6d91ffac794cf9e3eb17d6353775f2
-  });
+      body: requestBody,
+    );
 
-  final response = await http.post(
-    Uri.parse(url),
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $apiKey',
-    },
-    body: requestBody,
-  );
-
-  if (response.statusCode == 200) {
-    final jsonResponse = jsonDecode(response.body);
-    final completions = jsonResponse['choices'].map((choice) => choice['text']).toList();
-    return completions.join(' ');
-  } else {
-    // Handle other response codes
-    print('Error: ${response.body}');
-    return '';
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      final completions =
+          jsonResponse['choices'].map((choice) => choice['text']).toList();
+      return completions.join(' ');
+    } else {
+      // Handle other response codes
+      print('Error: ${response.body}');
+      return '';
+    }
   }
-}
-
-
 
   Future<void> sendImageToBackend(File imageFile) async {
     annotateImage(imageFile, 'AIzaSyCYP2i5j5TOs3k8MwmFnvGVqoE0amU52A0');
     return;
-    // var request = http.MultipartRequest(
-    //   'POST',
-    //   Uri.parse(
-    //       'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyC9P-soLqC2RKaixM8JlP41A4LNf0YwxaQ'),
-    // );
-    // request.files.add(
-    //   await http.MultipartFile.fromPath('file', imageFile.path),
-    // );
-
-    // try {
-    //   var response = await request.send();
-    //   if (response.statusCode == 200) {
-    //     // Successful response
-    //     var responseJson = await response.stream.bytesToString();
-    //     // Parse the JSON response
-    //     var caption = parseCaption(responseJson);
-    //     // Display or process the caption as needed
-    //     print('Caption: $caption');
-    //   } else {
-    //     // Handle other response codes
-    //     print('Error: ${response.statusCode}');
-    //   }
-    // } catch (e) {
-    //   print('Error: $e');
-    // }
   }
 
   String parseCaption(String responseJson) {
