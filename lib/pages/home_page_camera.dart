@@ -124,7 +124,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
         'image': {'content': base64Image},
         'features': [
           {'type': 'WEB_DETECTION'},
-          {'type': 'FACE_DETECTION'},
+          // {'type': 'FACE_DETECTION'},
         ],
       },
     ],
