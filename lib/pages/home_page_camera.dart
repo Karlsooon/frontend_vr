@@ -101,10 +101,8 @@ class _GalleryAccessState extends State<GalleryAccess> {
 
       // Send the image to the backend and retrieve the top 5 words
       final apiKey = 'AIzaSyCYP2i5j5TOs3k8MwmFnvGVqoE0amU52A0';
-      await annotateImage(galleryFile!, apiKey);
+      final wordList = await annotateImage(galleryFile!, apiKey);
 
-      // Generate a historical paragraph using the top 5 words
-      final wordList = await getTop5Words(apiKey);
       if (wordList.isNotEmpty) {
         final historyParagraph = await generateHistoryParagraph(wordList);
         print('History Paragraph: $historyParagraph');
@@ -114,43 +112,50 @@ class _GalleryAccessState extends State<GalleryAccess> {
     }
   }
 
-  Future<List<String>> getTop5Words(String apiKey) async {
-    final url = Uri.parse(
-        'https://vision.googleapis.com/v1/images:annotate?key=$apiKey');
-    final imageBytes = await galleryFile!.readAsBytes();
-    final base64Image = base64Encode(imageBytes);
+  // Future<List<String>> getTop5Words(String apiKey) async {
+  //   final url = Uri.parse(
+  //       'https://vision.googleapis.com/v1/images:annotate?key=$apiKey');
+  //   final imageBytes = await galleryFile!.readAsBytes();
+  //   final base64Image = base64Encode(imageBytes);
 
-    final requestBody = jsonEncode({
-      'requests': [
-        {
-          'image': {'content': base64Image},
-          'features': [
-            {'type': 'WEB_DETECTION'},
-          ],
-        },
-      ],
-    });
+  //   final requestBody = jsonEncode({
+  //     'requests': [
+  //       {
+  //         'image': {'content': base64Image},
+  //         'features': [
+  //           {'type': 'WEB_DETECTION'},
+  //         ],
+  //       },
+  //     ],
+  //   });
 
-    final response = await http.post(url, body: requestBody);
+  //   final response = await http.post(url, body: requestBody);
 
-    if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-      final webEntities =
-          jsonResponse['responses'][0]['webDetection']['webEntities'];
-      final sortedEntities = List.from(webEntities);
-      sortedEntities.sort((a, b) => b['score'].compareTo(a['score']));
-      final top5Words = sortedEntities
-          .map<String>((word) => word['description'].toString())
-          .take(5)
-          .toList();
-      return top5Words;
-    } else {
-      print('Error: ${response.body}');
-      return <String>[];
-    }
-  }
+  //   if (response.statusCode == 200) {
+  //     final jsonResponse = jsonDecode(response.body);
+  //     final webEntities =
+  //         jsonResponse['responses'][0]['webDetection']['webEntities'];
+  //     final sortedEntities = List.from(webEntities);
+  //     sortedEntities.sort((a, b) => b['score'].compareTo(a['score']));
+  //     final nonNullWords = sortedEntities
+  //         .where((word) =>
+  //             word.containsKey('description') &&
+  //             word['description'].runtimeType == String)
+  //         .take(5)
+  //         .map<String>((word) => word['description'].toString())
+  //         .toList();
 
-  Future<void> annotateImage(File imagePath, String apiKey) async {
+  //     for (var i = 0; i < nonNullWords.length; i++) {
+  //       print(nonNullWords[i]);
+  //     }
+  //     return nonNullWords;
+  //   } else {
+  //     print('Error: ${response.body}');
+  //     return <String>[];
+  //   }
+  // }
+
+  Future<List<String>> annotateImage(File imagePath, String apiKey) async {
     final url = Uri.parse(
         'https://vision.googleapis.com/v1/images:annotate?key=$apiKey');
 
@@ -184,21 +189,28 @@ class _GalleryAccessState extends State<GalleryAccess> {
           jsonResponse['responses'][0]['webDetection']['webEntities'];
       final sortedEntities = List.from(webEntities);
       sortedEntities.sort((a, b) => b['score'].compareTo(a['score']));
-      final top5Words = sortedEntities.take(5).toList();
+      final top5Words = <String>[];
+      for (var i = 0; i < sortedEntities.length; i++) {
+        if (top5Words.length >= 5) {
+          break;
+        }
+
+        if (sortedEntities[i].containsKey('description') &&
+            sortedEntities[i]['description'] is String) {
+          top5Words.add(sortedEntities[i]['description'].toString());
+        } 
+      }
 
       if (top5Words.isNotEmpty) {
-        final wordList = top5Words
-            .map((word) => word['description'])
-            .toList()
-            .cast<String>();
-        final historyParagraph = await generateHistoryParagraph(wordList);
-        print('History Paragraph: $historyParagraph');
+        return top5Words;
       } else {
         print('No words found');
+        return [];
       }
     } else {
       // Handle other response codes
       print('Error: ${response.body}');
+      return [];
     }
   }
 
@@ -208,13 +220,19 @@ class _GalleryAccessState extends State<GalleryAccess> {
     final url =
         'https://api.openai.com/v1/engines/text-davinci-003/completions'; // Use the Davinci-Codex model
 
-    final prompt = 'The five main words are: ${wordList.join(", ")}';
+    final nonNullWords = wordList.whereType<String>().toList();
+    if (nonNullWords.isEmpty) {
+      print('No words found');
+      return '';
+    }
+
+    final prompt = 'The five main words are: ${nonNullWords.join(", ")}';
     final requestBody = jsonEncode({
       'prompt': prompt,
       'max_tokens': 100,
       'temperature': 0.7,
       'n': 1,
-      'stop': ['Flutter:Word:', 'null']
+      // 'stop': ['Flutter:Word:', 'null']
     });
 
     final response = await http.post(
@@ -228,8 +246,13 @@ class _GalleryAccessState extends State<GalleryAccess> {
 
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
-      final completions =
-          jsonResponse['choices'].map((choice) => choice['text']).toList();
+      final completions = jsonResponse['choices']
+          .whereType<Map<String, dynamic>>() // Filter out null values
+          .map((choice) => choice['text'].toString())
+          .toList();
+
+      print('Completions: $completions'); // Print completions for debugging
+
       return completions.join(' ');
     } else {
       // Handle other response codes
