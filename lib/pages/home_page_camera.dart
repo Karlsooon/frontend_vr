@@ -4,10 +4,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'history_page.dart';
+import 'package:path/path.dart' as path;
+
 
 void main() {
   runApp(const MyApp());
 }
+final einsteinImagePath = path.join('lib/', 'images/', 'einstein.png');
+final einsteinImage = File(einsteinImagePath);
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key});
@@ -30,16 +34,19 @@ class GalleryAccess extends StatefulWidget {
 }
 
 class _GalleryAccessState extends State<GalleryAccess> {
+
+
   File? galleryFile;
   final picker = ImagePicker();
+  String? historyParagraph;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gallery and Camera Access'),
-        backgroundColor: Color.fromARGB(255, 47, 66, 210),
-        actions: const [],
+        backgroundColor: const Color.fromARGB(255, 47, 66, 210),
+        actions: [],
       ),
       body: Stack(
         children: [
@@ -80,12 +87,45 @@ class _GalleryAccessState extends State<GalleryAccess> {
             ),
           ),
           Center(
-            child: SizedBox(
-              height: 200.0,
-              width: 300.0,
-              child: galleryFile == null
-                  ? const Center(child: Text('Sorry, nothing selected!'))
-                  : Image.file(galleryFile!),
+            child: Stack(
+              children: [
+                SizedBox(
+                  height: 200.0,
+                  width: 300.0,
+                  child: galleryFile == null
+                      ? const Center(child: Text('Sorry, nothing selected!'))
+                      : Image.file(galleryFile!),
+                ),
+                if (galleryFile != null)
+                  Positioned.fill(
+                    child: Opacity(
+                      opacity: 0.8,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: FileImage(einsteinImage),
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  if (historyParagraph != null) {
+                    _navigateToHistoryPage(historyParagraph!);
+                  }
+                },
+                child: const Text('View History'),
+              ),
             ),
           ),
         ],
@@ -109,21 +149,21 @@ class _GalleryAccessState extends State<GalleryAccess> {
         galleryFile = File(pickedFile.path);
       });
 
-      // Send the image to the backend and retrieve the top 5 words
+      // Send the image to the backend and retrieve the paragraph description
       final apiKey = 'AIzaSyCYP2i5j5TOs3k8MwmFnvGVqoE0amU52A0';
-      final wordList = await annotateImage(galleryFile!, apiKey);
+      final paragraph = await generateHistoryParagraph(galleryFile!, apiKey);
 
-      if (wordList.isNotEmpty) {
-        final historyParagraph = await generateHistoryParagraph(wordList);
-
-        _navigateToHistoryPage(historyParagraph);
+      if (paragraph.isNotEmpty) {
+        setState(() {
+          historyParagraph = paragraph;
+        });
       } else {
         print('No words found');
       }
     }
   }
 
-  Future<List<String>> annotateImage(File imagePath, String apiKey) async {
+  Future<String> generateHistoryParagraph(File imagePath, String apiKey) async {
     final url = Uri.parse(
         'https://vision.googleapis.com/v1/images:annotate?key=$apiKey');
 
@@ -136,7 +176,6 @@ class _GalleryAccessState extends State<GalleryAccess> {
           'image': {'content': base64Image},
           'features': [
             {'type': 'WEB_DETECTION'},
-            // {'type': 'FACE_DETECTION'},
           ],
         },
       ],
@@ -145,13 +184,8 @@ class _GalleryAccessState extends State<GalleryAccess> {
     final response = await http.post(url, body: requestBody);
 
     if (response.statusCode == 200) {
-      // Successful response
       final jsonResponse = jsonDecode(response.body);
-      print("*****************************************");
-      debugPrint(response.body.toString());
-      print("*****************************************");
 
-      // Extract the top 5 words with the highest scores
       final webEntities =
           jsonResponse['responses'][0]['webDetection']['webEntities'];
       final sortedEntities = List.from(webEntities);
@@ -169,44 +203,32 @@ class _GalleryAccessState extends State<GalleryAccess> {
       }
 
       if (top5Words.isNotEmpty) {
-        return top5Words;
+        return await generateParagraphFromWords(top5Words);
       } else {
         print('No words found');
-        return [];
+        return '';
       }
     } else {
-      // Handle other response codes
       print('Error: ${response.body}');
-      return [];
+      return '';
     }
   }
 
-  Future<String> generateHistoryParagraph(List<String> wordList) async {
-    const apiKey =
-        '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'; // Replace with your OpenAI API key
+  Future<String> generateParagraphFromWords(List<String> wordList) async {
+    const apiKey = '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';
     const url =
-        'https://api.openai.com/v1/engines/text-davinci-003/completions'; // Use the Davinci-Codex model
-
-    final nonNullWords = wordList
-        .where((word) => word.replaceAll(RegExp(r'[^a-zA-Z]'), '').isNotEmpty)
-        .toList();
-
-    if (nonNullWords.isEmpty) {
-      print('No words found');
-      return '';
-    }
+        'https://api.openai.com/v1/engines/text-davinci-003/completions';
 
     final prompt = '''
-The five main words are: ${nonNullWords.join(", ")}.
-Please generate a paragraph describing the  significance of these 5 words in three sentences.
-You can be creative and provide informatical informations with using numbers and data.and ignore words image potograph.And always finish the sentence.be creative.
+The five main words are: ${wordList.join(", ")}.
+Please generate a paragraph describing the significance of these 5 words in three sentences.
+You can be creative and provide informative information using numbers and data. And always finish the sentence. Be creative.
 ''';
     final requestBody = jsonEncode({
       'prompt': prompt,
       'max_tokens': 100,
       'temperature': 0.2,
-      'n': 0.7,
-      // 'stop': ['Flutter:Word:', 'null']
+      'n': 3,
     });
 
     final response = await http.post(
@@ -221,21 +243,17 @@ You can be creative and provide informatical informations with using numbers and
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
       final completions = jsonResponse['choices']
-          .whereType<Map<String, dynamic>>() // Filter out null values
+          .whereType<Map<String, dynamic>>()
           .map((choice) => choice['text'].toString())
           .toList();
 
-      // Extract first three sentences
       final paragraphs = completions.join(' ').split('. ');
       final firstThreeSentences = paragraphs.sublist(0, 3).join('. ');
 
-      // print('Completions: $completions'); // Print completions for debugging
-
       return firstThreeSentences;
     } else {
-      // Handle other response codes
       print('Error: ${response.body}');
-      return 'ERRORERRORERRORERROR';
+      return '';
     }
   }
 }
