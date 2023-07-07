@@ -102,58 +102,29 @@ class _GalleryAccessState extends State<GalleryAccess> {
       // Send the image to the backend and retrieve the top 5 words
       final apiKey = 'AIzaSyCYP2i5j5TOs3k8MwmFnvGVqoE0amU52A0';
       final wordList = await annotateImage(galleryFile!, apiKey);
+      print(
+          "WordList*****************************************************************");
+
+      print(wordList);
+
+      print(
+          "WordList*****************************************************************");
 
       if (wordList.isNotEmpty) {
         final historyParagraph = await generateHistoryParagraph(wordList);
+
+        print(
+            "*****************************************************************");
+
         print('History Paragraph: $historyParagraph');
+
+        print(
+            "*****************************************************************");
       } else {
         print('No words found');
       }
     }
   }
-
-  // Future<List<String>> getTop5Words(String apiKey) async {
-  //   final url = Uri.parse(
-  //       'https://vision.googleapis.com/v1/images:annotate?key=$apiKey');
-  //   final imageBytes = await galleryFile!.readAsBytes();
-  //   final base64Image = base64Encode(imageBytes);
-
-  //   final requestBody = jsonEncode({
-  //     'requests': [
-  //       {
-  //         'image': {'content': base64Image},
-  //         'features': [
-  //           {'type': 'WEB_DETECTION'},
-  //         ],
-  //       },
-  //     ],
-  //   });
-
-  //   final response = await http.post(url, body: requestBody);
-
-  //   if (response.statusCode == 200) {
-  //     final jsonResponse = jsonDecode(response.body);
-  //     final webEntities =
-  //         jsonResponse['responses'][0]['webDetection']['webEntities'];
-  //     final sortedEntities = List.from(webEntities);
-  //     sortedEntities.sort((a, b) => b['score'].compareTo(a['score']));
-  //     final nonNullWords = sortedEntities
-  //         .where((word) =>
-  //             word.containsKey('description') &&
-  //             word['description'].runtimeType == String)
-  //         .take(5)
-  //         .map<String>((word) => word['description'].toString())
-  //         .toList();
-
-  //     for (var i = 0; i < nonNullWords.length; i++) {
-  //       print(nonNullWords[i]);
-  //     }
-  //     return nonNullWords;
-  //   } else {
-  //     print('Error: ${response.body}');
-  //     return <String>[];
-  //   }
-  // }
 
   Future<List<String>> annotateImage(File imagePath, String apiKey) async {
     final url = Uri.parse(
@@ -179,7 +150,6 @@ class _GalleryAccessState extends State<GalleryAccess> {
     if (response.statusCode == 200) {
       // Successful response
       final jsonResponse = jsonDecode(response.body);
-      print(response.body.toString());
       print("*****************************************");
       debugPrint(response.body.toString());
       print("*****************************************");
@@ -198,7 +168,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
         if (sortedEntities[i].containsKey('description') &&
             sortedEntities[i]['description'] is String) {
           top5Words.add(sortedEntities[i]['description'].toString());
-        } 
+        }
       }
 
       if (top5Words.isNotEmpty) {
@@ -215,22 +185,29 @@ class _GalleryAccessState extends State<GalleryAccess> {
   }
 
   Future<String> generateHistoryParagraph(List<String> wordList) async {
-    final apiKey =
+    const apiKey =
         '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'; // Replace with your OpenAI API key
-    final url =
+    const url =
         'https://api.openai.com/v1/engines/text-davinci-003/completions'; // Use the Davinci-Codex model
 
-    final nonNullWords = wordList.whereType<String>().toList();
+    final nonNullWords = wordList
+        .where((word) => word.replaceAll(RegExp(r'[^a-zA-Z]'), '').isNotEmpty)
+        .toList();
+
     if (nonNullWords.isEmpty) {
       print('No words found');
       return '';
     }
 
-    final prompt = 'The five main words are: ${nonNullWords.join(", ")}';
+    final prompt = '''
+The five main words are: ${nonNullWords.join(", ")}.
+Please generate a paragraph describing the  significance of these words in three sentences.
+You can be creative and provide detailed insights.If 5 word contain a name of person tell about this person,if contain movie name tell about this movie,and ignore words image potograph and so on
+''';
     final requestBody = jsonEncode({
       'prompt': prompt,
       'max_tokens': 100,
-      'temperature': 0.7,
+      'temperature': 0.9,
       'n': 1,
       // 'stop': ['Flutter:Word:', 'null']
     });
@@ -251,30 +228,20 @@ class _GalleryAccessState extends State<GalleryAccess> {
           .map((choice) => choice['text'].toString())
           .toList();
 
-      print('Completions: $completions'); // Print completions for debugging
+      // Extract first three sentences
+      final paragraphs = completions.join(' ').split('. ');
+      final firstThreeSentences = paragraphs.sublist(0, 3).join('. ');
 
-      return completions.join(' ');
+      // print('Completions: $completions'); // Print completions for debugging
+
+
+      return firstThreeSentences;
+
     } else {
       // Handle other response codes
       print('Error: ${response.body}');
-      return '';
+      return 'ERRORERRORERRORERROR';
     }
   }
 
-  Future<void> sendImageToBackend(File imageFile) async {
-    annotateImage(imageFile, 'AIzaSyCYP2i5j5TOs3k8MwmFnvGVqoE0amU52A0');
-    return;
-  }
-
-  String parseCaption(String responseJson) {
-    // Parse the JSON response and extract the caption
-    try {
-      final jsonResponse = jsonDecode(responseJson);
-      final caption = jsonResponse['caption'];
-      return caption;
-    } catch (e) {
-      print('Error parsing caption: $e');
-      return '';
-    }
-  }
 }
