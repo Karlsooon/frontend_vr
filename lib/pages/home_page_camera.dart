@@ -198,14 +198,14 @@ class _GalleryAccessState extends State<GalleryAccess> {
 
     final prompt = '''
 The five main words are: ${nonNullWords.join(", ")}.
-Please generate a paragraph describing the  significance of these words in three sentences.
-You can be creative and provide detailed insights.and ignore words image potograph and so on.And always finish the sentence.be creative.
+Please generate a paragraph describing the  significance of these 5 words in three sentences.
+You can be creative and provide informatical informations with using numbers and data.and ignore words image potograph.And always finish the sentence.be creative.
 ''';
     final requestBody = jsonEncode({
       'prompt': prompt,
       'max_tokens': 100,
       'temperature': 0.2,
-      'n': 1,
+      'n': 0.7,
       // 'stop': ['Flutter:Word:', 'null']
     });
 
