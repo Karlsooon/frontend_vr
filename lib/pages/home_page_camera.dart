@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'history_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -92,6 +93,15 @@ class _GalleryAccessState extends State<GalleryAccess> {
     );
   }
 
+  void _navigateToHistoryPage(String historyParagraph) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HistoryPage(historyParagraph: historyParagraph),
+      ),
+    );
+  }
+
   void _showPicker(BuildContext context, ImageSource source) async {
     final pickedFile = await picker.pickImage(source: source);
     if (pickedFile != null) {
@@ -102,24 +112,11 @@ class _GalleryAccessState extends State<GalleryAccess> {
       // Send the image to the backend and retrieve the top 5 words
       final apiKey = 'AIzaSyCYP2i5j5TOs3k8MwmFnvGVqoE0amU52A0';
       final wordList = await annotateImage(galleryFile!, apiKey);
-      print(
-          "WordList*****************************************************************");
-
-      print(wordList);
-
-      print(
-          "WordList*****************************************************************");
 
       if (wordList.isNotEmpty) {
         final historyParagraph = await generateHistoryParagraph(wordList);
 
-        print(
-            "*****************************************************************");
-
-        print('History Paragraph: $historyParagraph');
-
-        print(
-            "*****************************************************************");
+        _navigateToHistoryPage(historyParagraph);
       } else {
         print('No words found');
       }
@@ -202,12 +199,12 @@ class _GalleryAccessState extends State<GalleryAccess> {
     final prompt = '''
 The five main words are: ${nonNullWords.join(", ")}.
 Please generate a paragraph describing the  significance of these words in three sentences.
-You can be creative and provide detailed insights.If 5 word contain a name of person tell about this person,if contain movie name tell about this movie,and ignore words image potograph and so on
+You can be creative and provide detailed insights.and ignore words image potograph and so on.And always finish the sentence.be creative.
 ''';
     final requestBody = jsonEncode({
       'prompt': prompt,
       'max_tokens': 100,
-      'temperature': 0.9,
+      'temperature': 0.2,
       'n': 1,
       // 'stop': ['Flutter:Word:', 'null']
     });
@@ -234,14 +231,11 @@ You can be creative and provide detailed insights.If 5 word contain a name of pe
 
       // print('Completions: $completions'); // Print completions for debugging
 
-
       return firstThreeSentences;
-
     } else {
       // Handle other response codes
       print('Error: ${response.body}');
       return 'ERRORERRORERRORERROR';
     }
   }
-
 }
