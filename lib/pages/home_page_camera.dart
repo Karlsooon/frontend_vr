@@ -2,16 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'caption_page.dart';
 import 'dart:convert';
-import 'history_page.dart';
-import 'package:path/path.dart' as path;
-
+import 'dart:developer';
 
 void main() {
   runApp(const MyApp());
 }
-final einsteinImagePath = path.join('lib/', 'images/', 'einstein.png');
-final einsteinImage = File(einsteinImagePath);
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key});
@@ -34,19 +31,16 @@ class GalleryAccess extends StatefulWidget {
 }
 
 class _GalleryAccessState extends State<GalleryAccess> {
-
-
   File? galleryFile;
   final picker = ImagePicker();
-  String? historyParagraph;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gallery and Camera Access'),
-        backgroundColor: const Color.fromARGB(255, 47, 66, 210),
-        actions: [],
+        backgroundColor: Color.fromARGB(255, 47, 66, 210),
+        actions: const [],
       ),
       body: Stack(
         children: [
@@ -87,57 +81,15 @@ class _GalleryAccessState extends State<GalleryAccess> {
             ),
           ),
           Center(
-            child: Stack(
-              children: [
-                SizedBox(
-                  height: 200.0,
-                  width: 300.0,
-                  child: galleryFile == null
-                      ? const Center(child: Text('Sorry, nothing selected!'))
-                      : Image.file(galleryFile!),
-                ),
-                if (galleryFile != null)
-                  Positioned.fill(
-                    child: Opacity(
-                      opacity: 0.8,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: FileImage(einsteinImage),
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  if (historyParagraph != null) {
-                    _navigateToHistoryPage(historyParagraph!);
-                  }
-                },
-                child: const Text('View History'),
-              ),
+            child: SizedBox(
+              height: 200.0,
+              width: 300.0,
+              child: galleryFile == null
+                  ? const Center(child: Text('Sorry, nothing selected!'))
+                  : Image.file(galleryFile!),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _navigateToHistoryPage(String historyParagraph) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HistoryPage(historyParagraph: historyParagraph),
       ),
     );
   }
@@ -148,112 +100,111 @@ class _GalleryAccessState extends State<GalleryAccess> {
       setState(() {
         galleryFile = File(pickedFile.path);
       });
-
-      // Send the image to the backend and retrieve the paragraph description
-      final apiKey = 'AIzaSyCYP2i5j5TOs3k8MwmFnvGVqoE0amU52A0';
-      final paragraph = await generateHistoryParagraph(galleryFile!, apiKey);
-
-      if (paragraph.isNotEmpty) {
-        setState(() {
-          historyParagraph = paragraph;
-        });
-      } else {
-        print('No words found');
-      }
+      await sendImageToBackend(galleryFile!);
     }
   }
 
-  Future<String> generateHistoryParagraph(File imagePath, String apiKey) async {
-    final url = Uri.parse(
-        'https://vision.googleapis.com/v1/images:annotate?key=$apiKey');
+//   Future<void> extractInfoFromJson(String jsonInfo, {int retryCount = 0}) async {
+//   final prompt =
+//       "From the provided JSON information and using article permalinks and pageTitles in json, please find the following details: person name, brand name, movie name, and building name. Additionally, retrieve the top 3 descriptions with the highest scores. Format the response as follows: [{person name} {brand name} {movie name} {building name} {description1} {description2} {description3}]. If any of the details cannot be found, leave them empty.";
 
-    final imageBytes = await imagePath.readAsBytes();
-    final base64Image = base64Encode(imageBytes);
+//   final chatGptInput = "$prompt\n\n$jsonInfo";
 
-    final requestBody = jsonEncode({
-      'requests': [
-        {
-          'image': {'content': base64Image},
-          'features': [
-            {'type': 'WEB_DETECTION'},
-          ],
-        },
-      ],
-    });
+//   final apiUrl =
+//       'https://api.openai.com/v1/engines/gpt-3.5-turbo-0301/completions';
+//   final apiKey =
+//       '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'; // Replace with your ChatGPT API key
+//   final response = await http.post(
+//     Uri.parse(apiUrl),
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'Authorization': 'Bearer $apiKey',
+//     },
+//     body: jsonEncode({
+//       'prompt': chatGptInput,
+//       'max_tokens': 100,
+//     }),
+//   );
 
-    final response = await http.post(url, body: requestBody);
+//   if (response.statusCode == 200) {
+//     final jsonResponse = jsonDecode(response.body);
+//     final completions = jsonResponse['choices'][0]['text'];
 
+//     final extractedNames = extractNamesFromCompletion(completions);
+
+//     if (extractedNames.length < 7 && retryCount < 2) {
+//       print("Some information is missing. Trying again... (Attempt ${retryCount + 1})");
+//       await extractInfoFromJson(jsonInfo, retryCount: retryCount + 1); // Try again recursively with an increased retry count
+//     } else {
+//       print("$extractedNames");
+//       // Send the extracted names to Serper API
+//       // await sendToSerper(extractedNames);
+//     }
+//   } else {
+//     print('Error: ${response.body}');
+//   }
+// }
+
+
+  // List<String> extractNamesFromCompletion(String completion) {
+  //   final words = completion.split(',');
+  //   final names =
+  //       words.where((word) => word[0].toUpperCase() == word[0]).toList();
+  //   return names;
+  // }
+
+  // Future<void> annotateImage(File imagePath, String apiKey) async {
+  //   final url = Uri.parse(
+  //       'https://vision.googleapis.com/v1/images:annotate?key=$apiKey');
+
+  //   final imageBytes = await imagePath.readAsBytes();
+  //   final base64Image = base64Encode(imageBytes);
+  //   final requestBody = jsonEncode({
+  //     'requests': [
+  //       {
+  //         'image': {'content': base64Image},
+  //         'features': [
+  //           {'type': 'WEB_DETECTION'},
+  //           // {'type': 'PRODUCT_SEARCH'},
+  //           // Add more feature types as needed
+  //         ],
+  //       },
+  //     ],
+  //   });
+
+  //   final response = await http.post(url, body: requestBody);
+
+  //   if (response.statusCode == 200) {
+  //     // Successful response
+  //     final jsonResponse = jsonDecode(response.body);
+  //     print("*****************************************");
+  //     debugPrint(response.body.toString());
+  //     print("*****************************************");
+  //     await extractInfoFromJson(response.body.toString());
+  //   } else {
+  //     // Handle other response codes
+  //     print('Error: ${response.body}');
+  //   }
+  // }
+
+Future<void> sendImageToBackend(String imagePath) async {
+  var url = Uri.parse('https://your-backend-api-url.com/process-image/');
+  
+  var request = http.MultipartRequest('POST', url);
+  request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+  
+  try {
+    var response = await request.send();
     if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-
-      final webEntities =
-          jsonResponse['responses'][0]['webDetection']['webEntities'];
-      final sortedEntities = List.from(webEntities);
-      sortedEntities.sort((a, b) => b['score'].compareTo(a['score']));
-      final top5Words = <String>[];
-      for (var i = 0; i < sortedEntities.length; i++) {
-        if (top5Words.length >= 5) {
-          break;
-        }
-
-        if (sortedEntities[i].containsKey('description') &&
-            sortedEntities[i]['description'] is String) {
-          top5Words.add(sortedEntities[i]['description'].toString());
-        }
-      }
-
-      if (top5Words.isNotEmpty) {
-        return await generateParagraphFromWords(top5Words);
-      } else {
-        print('No words found');
-        return '';
-      }
+      print('Image successfully sent to the backend');
+      // Process the response from the backend
+      // For example, you can parse the JSON response
+      // and display the extracted information in your UI
     } else {
-      print('Error: ${response.body}');
-      return '';
+      print('Failed to send the image to the backend');
     }
+  } catch (e) {
+    print('Error occurred while sending the image: $e');
   }
-
-  Future<String> generateParagraphFromWords(List<String> wordList) async {
-    const apiKey = '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';
-    const url =
-        'https://api.openai.com/v1/engines/text-davinci-003/completions';
-
-    final prompt = '''
-The five main words are: ${wordList.join(", ")}.
-Please generate a paragraph describing the significance of these 5 words in three sentences.
-You can be creative and provide informative information using numbers and data. And always finish the sentence. Be creative.
-''';
-    final requestBody = jsonEncode({
-      'prompt': prompt,
-      'max_tokens': 100,
-      'temperature': 0.2,
-      'n': 3,
-    });
-
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $apiKey',
-      },
-      body: requestBody,
-    );
-
-    if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-      final completions = jsonResponse['choices']
-          .whereType<Map<String, dynamic>>()
-          .map((choice) => choice['text'].toString())
-          .toList();
-
-      final paragraphs = completions.join(' ').split('. ');
-      final firstThreeSentences = paragraphs.sublist(0, 3).join('. ');
-
-      return firstThreeSentences;
-    } else {
-      print('Error: ${response.body}');
-      return '';
-    }
-  }
+}
 }
