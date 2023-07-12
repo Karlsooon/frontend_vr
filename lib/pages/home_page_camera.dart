@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'caption_page.dart';
 import 'dart:convert';
 import 'dart:developer';
+import 'package:arkit_plugin/arkit_plugin.dart';
 
 void main() {
   runApp(const MyApp());
@@ -33,19 +33,21 @@ class GalleryAccess extends StatefulWidget {
 class _GalleryAccessState extends State<GalleryAccess> {
   File? galleryFile;
   final picker = ImagePicker();
+  final einsteinImage = AssetImage('lib/images/einstein.png');
+  String backendResult = '';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gallery and Camera Access'),
-        backgroundColor: Color.fromARGB(255, 47, 66, 210),
+        backgroundColor: const Color.fromARGB(255, 47, 66, 210),
         actions: const [],
       ),
       body: Stack(
         children: [
           Positioned(
-            top: 630,
+            top: 580,
             right: 20,
             child: GestureDetector(
               onTap: () {
@@ -63,7 +65,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
             ),
           ),
           Positioned(
-            top: 630,
+            top: 580,
             left: 30,
             child: GestureDetector(
               onTap: () {
@@ -89,7 +91,32 @@ class _GalleryAccessState extends State<GalleryAccess> {
                   : Image.file(galleryFile!),
             ),
           ),
+          if (galleryFile != null)
+            Positioned(
+              bottom: 0,
+              child: FractionalTranslation(
+                translation: const Offset(0, 0),
+                child: SizedBox(
+                  height: 300,
+                  width: 300,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: einsteinImage,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _getResultFromBackend(context);
+        },
+        child: const Icon(Icons.send),
       ),
     );
   }
@@ -100,111 +127,59 @@ class _GalleryAccessState extends State<GalleryAccess> {
       setState(() {
         galleryFile = File(pickedFile.path);
       });
-      await sendImageToBackend(galleryFile!);
+      // await sendImageToBackend(File(pickedFile.path));
     }
   }
 
-//   Future<void> extractInfoFromJson(String jsonInfo, {int retryCount = 0}) async {
-//   final prompt =
-//       "From the provided JSON information and using article permalinks and pageTitles in json, please find the following details: person name, brand name, movie name, and building name. Additionally, retrieve the top 3 descriptions with the highest scores. Format the response as follows: [{person name} {brand name} {movie name} {building name} {description1} {description2} {description3}]. If any of the details cannot be found, leave them empty.";
+  Future<String> sendImageToBackend(File imageFile) async {
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://localhost:8000/process_image'),
+    );
+    request.files.add(
+      await http.MultipartFile.fromPath('file', imageFile.path),
+    );
 
-//   final chatGptInput = "$prompt\n\n$jsonInfo";
-
-//   final apiUrl =
-//       'https://api.openai.com/v1/engines/gpt-3.5-turbo-0301/completions';
-//   final apiKey =
-//       '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'; // Replace with your ChatGPT API key
-//   final response = await http.post(
-//     Uri.parse(apiUrl),
-//     headers: {
-//       'Content-Type': 'application/json',
-//       'Authorization': 'Bearer $apiKey',
-//     },
-//     body: jsonEncode({
-//       'prompt': chatGptInput,
-//       'max_tokens': 100,
-//     }),
-//   );
-
-//   if (response.statusCode == 200) {
-//     final jsonResponse = jsonDecode(response.body);
-//     final completions = jsonResponse['choices'][0]['text'];
-
-//     final extractedNames = extractNamesFromCompletion(completions);
-
-//     if (extractedNames.length < 7 && retryCount < 2) {
-//       print("Some information is missing. Trying again... (Attempt ${retryCount + 1})");
-//       await extractInfoFromJson(jsonInfo, retryCount: retryCount + 1); // Try again recursively with an increased retry count
-//     } else {
-//       print("$extractedNames");
-//       // Send the extracted names to Serper API
-//       // await sendToSerper(extractedNames);
-//     }
-//   } else {
-//     print('Error: ${response.body}');
-//   }
-// }
-
-
-  // List<String> extractNamesFromCompletion(String completion) {
-  //   final words = completion.split(',');
-  //   final names =
-  //       words.where((word) => word[0].toUpperCase() == word[0]).toList();
-  //   return names;
-  // }
-
-  // Future<void> annotateImage(File imagePath, String apiKey) async {
-  //   final url = Uri.parse(
-  //       'https://vision.googleapis.com/v1/images:annotate?key=$apiKey');
-
-  //   final imageBytes = await imagePath.readAsBytes();
-  //   final base64Image = base64Encode(imageBytes);
-  //   final requestBody = jsonEncode({
-  //     'requests': [
-  //       {
-  //         'image': {'content': base64Image},
-  //         'features': [
-  //           {'type': 'WEB_DETECTION'},
-  //           // {'type': 'PRODUCT_SEARCH'},
-  //           // Add more feature types as needed
-  //         ],
-  //       },
-  //     ],
-  //   });
-
-  //   final response = await http.post(url, body: requestBody);
-
-  //   if (response.statusCode == 200) {
-  //     // Successful response
-  //     final jsonResponse = jsonDecode(response.body);
-  //     print("*****************************************");
-  //     debugPrint(response.body.toString());
-  //     print("*****************************************");
-  //     await extractInfoFromJson(response.body.toString());
-  //   } else {
-  //     // Handle other response codes
-  //     print('Error: ${response.body}');
-  //   }
-  // }
-
-Future<void> sendImageToBackend(String imagePath) async {
-  var url = Uri.parse('https://your-backend-api-url.com/process-image/');
-  
-  var request = http.MultipartRequest('POST', url);
-  request.files.add(await http.MultipartFile.fromPath('image', imagePath));
-  
-  try {
-    var response = await request.send();
-    if (response.statusCode == 200) {
-      print('Image successfully sent to the backend');
-      // Process the response from the backend
-      // For example, you can parse the JSON response
-      // and display the extracted information in your UI
-    } else {
-      print('Failed to send the image to the backend');
+    try {
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        var caption = await response.stream.bytesToString();
+        return caption;
+      } else {
+        return 'Error: ${response.statusCode}';
+      }
+    } catch (e) {
+      return 'Error: $e';
     }
-  } catch (e) {
-    print('Error occurred while sending the image: $e');
+  }
+
+  void _getResultFromBackend(BuildContext context) async {
+    if (galleryFile != null) {
+      var result = await sendImageToBackend(galleryFile!);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResultPage(result: result),
+        ),
+      );
+    }
   }
 }
+
+class ResultPage extends StatelessWidget {
+  final String result;
+
+  const ResultPage({Key? key, required this.result}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Result'),
+      ),
+      body: Center(
+        child: Text(result),
+      ),
+    );
+  }
 }
