@@ -114,7 +114,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _getResultFromBackend(context);
+          _getGptResultFromBackend(context); // Updated function call
         },
         child: const Icon(Icons.send),
       ),
@@ -127,11 +127,10 @@ class _GalleryAccessState extends State<GalleryAccess> {
       setState(() {
         galleryFile = File(pickedFile.path);
       });
-      // await sendImageToBackend(File(pickedFile.path));
     }
   }
 
-  Future<String> sendImageToBackend(File imageFile) async {
+  Future<String> getGptResultFromBackend(File imageFile) async {
     var request = http.MultipartRequest(
       'POST',
       Uri.parse('http://localhost:8000/process_image'),
@@ -153,9 +152,9 @@ class _GalleryAccessState extends State<GalleryAccess> {
     }
   }
 
-  void _getResultFromBackend(BuildContext context) async {
+  void _getGptResultFromBackend(BuildContext context) async {
     if (galleryFile != null) {
-      var result = await sendImageToBackend(galleryFile!);
+      var result = await getGptResultFromBackend(galleryFile!);
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -177,8 +176,12 @@ class ResultPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Result'),
       ),
-      body: Center(
-        child: Text(result),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text(
+          result,
+          style: const TextStyle(fontSize: 18),
+        ),
       ),
     );
   }
