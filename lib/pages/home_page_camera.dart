@@ -33,7 +33,6 @@ class GalleryAccess extends StatefulWidget {
 class _GalleryAccessState extends State<GalleryAccess> {
   File? galleryFile;
   final picker = ImagePicker();
-  final einsteinImage = AssetImage('lib/images/einstein.png');
   String backendResult = '';
 
   @override
@@ -101,10 +100,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
                   width: 300,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: einsteinImage,
-                        fit: BoxFit.contain,
-                      ),
+                      
                     ),
                   ),
                 ),
