@@ -9,7 +9,6 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:vector_math/vector_math_64.dart' as vector_math;
 
 
-
 void main() {
   runApp(const MyApp());
 }
@@ -119,14 +118,27 @@ class _GalleryAccessState extends State<GalleryAccess> {
     );
   }
 
-  void _showPicker(BuildContext context, ImageSource source) async {
-    final pickedFile = await picker.pickImage(source: source);
-    if (pickedFile != null) {
-      setState(() {
-        galleryFile = File(pickedFile.path);
-      });
-    }
+void _showPicker(BuildContext context, ImageSource source) async {
+  final pickedFile = await picker.pickImage(source: source);
+  if (pickedFile != null) {
+    setState(() {
+      galleryFile = File(pickedFile.path);
+      if (source == ImageSource.camera) {
+        _showARKitExample(); // Show ARKitExample when using camera
+      }
+    });
   }
+}
+
+void _showARKitExample() {
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return ARKitExample();
+    },
+  );
+}
+
 
   Future<String> getGptResultFromBackend(File imageFile) async {
     var request = http.MultipartRequest(
@@ -198,13 +210,13 @@ class _ResultPageState extends State<ResultPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Result'),
+        title: Text('Result'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Text(
           widget.result,
-          style: const TextStyle(fontSize: 18),
+          style: TextStyle(fontSize: 18),
         ),
       ),
     );
