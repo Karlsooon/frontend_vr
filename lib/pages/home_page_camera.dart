@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:developer';
 import 'package:arkit_plugin/arkit_plugin.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:vector_math/vector_math_64.dart' as vector_math;
-
 
 void main() {
   runApp(const MyApp());
@@ -107,38 +105,26 @@ class _GalleryAccessState extends State<GalleryAccess> {
                 ),
               ),
             ),
+          ARKitExample(), // Add ARKitExample widget to display AR content
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _getGptResultFromBackend(context); // Updated function call
+          _getGptResultFromBackend(context);
         },
         child: const Icon(Icons.send),
       ),
     );
   }
 
-void _showPicker(BuildContext context, ImageSource source) async {
-  final pickedFile = await picker.pickImage(source: source);
-  if (pickedFile != null) {
-    setState(() {
-      galleryFile = File(pickedFile.path);
-      if (source == ImageSource.camera) {
-        _showARKitExample(); // Show ARKitExample when using camera
-      }
-    });
+  void _showPicker(BuildContext context, ImageSource source) async {
+    final pickedFile = await picker.pickImage(source: source);
+    if (pickedFile != null) {
+      setState(() {
+        galleryFile = File(pickedFile.path);
+      });
+    }
   }
-}
-
-void _showARKitExample() {
-  showModalBottomSheet(
-    context: context,
-    builder: (BuildContext context) {
-      return ARKitExample();
-    },
-  );
-}
-
 
   Future<String> getGptResultFromBackend(File imageFile) async {
     var request = http.MultipartRequest(
@@ -210,13 +196,13 @@ class _ResultPageState extends State<ResultPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Result'),
+        title: const Text('Result'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Text(
           widget.result,
-          style: TextStyle(fontSize: 18),
+          style: const TextStyle(fontSize: 18),
         ),
       ),
     );
@@ -241,21 +227,14 @@ class _ARKitExampleState extends State<ARKitExample> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: ARKitSceneView(
-        onARKitViewCreated: onARKitViewCreated,
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          addARKitNode(arkitController); // Updated function call
-        },
-        child: const Icon(Icons.add),
-      ),
+    return ARKitSceneView(
+      onARKitViewCreated: onARKitViewCreated,
     );
   }
 
   void onARKitViewCreated(ARKitController arkitController) {
     this.arkitController = arkitController;
+    addARKitNode(arkitController);
   }
 
   void addARKitNode(ARKitController arkitController) {
