@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:developer';
 import 'package:arkit_plugin/arkit_plugin.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:vector_math/vector_math_64.dart' as vector_math;
 
 void main() {
   runApp(const MyApp());
@@ -99,18 +100,17 @@ class _GalleryAccessState extends State<GalleryAccess> {
                   height: 300,
                   width: 300,
                   child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      
-                    ),
+                    decoration: BoxDecoration(),
                   ),
                 ),
               ),
             ),
+          ARKitExample(), // Add ARKitExample widget to display AR content
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _getGptResultFromBackend(context); // Updated function call
+          _getGptResultFromBackend(context);
         },
         child: const Icon(Icons.send),
       ),
@@ -161,10 +161,36 @@ class _GalleryAccessState extends State<GalleryAccess> {
   }
 }
 
-class ResultPage extends StatelessWidget {
+class ResultPage extends StatefulWidget {
   final String result;
 
   const ResultPage({Key? key, required this.result}) : super(key: key);
+
+  @override
+  _ResultPageState createState() => _ResultPageState();
+}
+
+class _ResultPageState extends State<ResultPage> {
+  FlutterTts flutterTts = FlutterTts();
+
+  @override
+  void initState() {
+    super.initState();
+    speakResult();
+  }
+
+  Future<void> speakResult() async {
+    await flutterTts.setLanguage('en-US');
+    await flutterTts.setPitch(1.0);
+    await flutterTts.setSpeechRate(0.6);
+    await flutterTts.speak(widget.result);
+  }
+
+  @override
+  void dispose() {
+    flutterTts.stop();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -175,10 +201,48 @@ class ResultPage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Text(
-          result,
+          widget.result,
           style: const TextStyle(fontSize: 18),
         ),
       ),
     );
+  }
+}
+
+class ARKitExample extends StatefulWidget {
+  const ARKitExample({Key? key}) : super(key: key);
+
+  @override
+  _ARKitExampleState createState() => _ARKitExampleState();
+}
+
+class _ARKitExampleState extends State<ARKitExample> {
+  late ARKitController arkitController;
+
+  @override
+  void dispose() {
+    arkitController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ARKitSceneView(
+      onARKitViewCreated: onARKitViewCreated,
+    );
+  }
+
+  void onARKitViewCreated(ARKitController arkitController) {
+    this.arkitController = arkitController;
+    addARKitNode(arkitController);
+  }
+
+  void addARKitNode(ARKitController arkitController) {
+    final node = ARKitNode(
+      geometry: ARKitSphere(radius: 0.1),
+      position: vector_math.Vector3(0, 0, -0.5),
+    );
+
+    arkitController.add(node);
   }
 }
