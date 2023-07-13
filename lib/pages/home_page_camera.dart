@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:developer';
 import 'package:arkit_plugin/arkit_plugin.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:vector_math/vector_math_64.dart' as vector_math;
+
+
 
 void main() {
   runApp(const MyApp());
@@ -105,12 +108,11 @@ class _GalleryAccessState extends State<GalleryAccess> {
                 ),
               ),
             ),
-          ARKitExample(), // Add ARKitExample widget to display AR content
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _getGptResultFromBackend(context);
+          _getGptResultFromBackend(context); // Updated function call
         },
         child: const Icon(Icons.send),
       ),
@@ -227,14 +229,21 @@ class _ARKitExampleState extends State<ARKitExample> {
 
   @override
   Widget build(BuildContext context) {
-    return ARKitSceneView(
-      onARKitViewCreated: onARKitViewCreated,
+    return Scaffold(
+      body: ARKitSceneView(
+        onARKitViewCreated: onARKitViewCreated,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          addARKitNode(arkitController); // Updated function call
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
   void onARKitViewCreated(ARKitController arkitController) {
     this.arkitController = arkitController;
-    addARKitNode(arkitController);
   }
 
   void addARKitNode(ARKitController arkitController) {
