@@ -105,7 +105,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
                 ),
               ),
             ),
-          ARKitExample(), // Add ARKitExample widget to display AR content
+          if (galleryFile != null) ARKitExample(), // Add ARKitExample widget to display AR content
         ],
       ),
       floatingActionButton: FloatingActionButton(
