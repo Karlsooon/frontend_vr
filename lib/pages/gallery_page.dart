@@ -23,6 +23,7 @@ class GalleryAccess extends StatefulWidget {
 }
 
 class _GalleryAccessState extends State<GalleryAccess> {
+    Future<String>? _result;
   @override
   void initState() {
     super.initState();
@@ -107,8 +108,19 @@ class _GalleryAccessState extends State<GalleryAccess> {
                         borderRadius: BorderRadius.circular(
                             20.0), // Optional: Add rounded corners
                         child: IconButton(
-                          onPressed: () {
-                            // Add your onPressed logic here
+                          onPressed: () async {
+                            // Send the chosen image to the backend and get the result
+                            // _result = getGptResultFromBackend();
+                            // var result = await _result;
+
+                            // if (result != null) {
+                            //   Navigator.push(
+                            //     context,
+                            //     MaterialPageRoute(
+                            //       builder: (context) => ResultPage(result: result),
+                            //     ),
+                            //   );
+                            // }
                           },
                           icon: Icon(
                             Icons.message_outlined,
@@ -145,5 +157,31 @@ class _GalleryAccessState extends State<GalleryAccess> {
         ),
       ),
     );
+  }
+    Future<String?> getGptResultFromBackend() async {
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://35.234.108.24:8000/process_image'),
+    );
+
+    final imageBytes = await widget.galleryFile.readAsBytes();
+    final multipartFile = http.MultipartFile.fromBytes(
+      'image',
+      imageBytes,
+      filename: 'image.png',
+    );
+    request.files.add(multipartFile);
+
+    try {
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        var caption = await response.stream.bytesToString();
+        return caption;
+      } else {
+        return 'Error: ${response.statusCode}';
+      }
+    } catch (e) {
+      return 'Error: $e';
+    }
   }
 }

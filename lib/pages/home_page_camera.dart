@@ -14,6 +14,9 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:vector_math/vector_math_64.dart' as vector_math;
 import 'result_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'intro_screen.dart';
+import 'package:camera/camera.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -76,11 +79,17 @@ class _ARKitExampleState extends State<ARKitExample> {
                     children: [
                       IconButton(
                         onPressed: () {
-                          // Add your onPressed logic here
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  IntroScreen(), // Navigate to IntroScreen
+                            ),
+                          ); // Navigate back when the button is pressed
                         },
                         icon: Icon(
                           Icons.arrow_back_ios_new_outlined,
-                          color: Colors.white, // Color of the icon
+                          color: Colors.white,
                         ),
                         iconSize: 35,
                       ),
@@ -136,8 +145,16 @@ class _ARKitExampleState extends State<ARKitExample> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () {
-                      // Add your onPressed logic here
+                    onPressed: () async {
+                      final image = await arkitController.snapshot();
+                      final result = await _getImageFileFromProvider(image);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              GalleryAccess(galleryFile: result),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.all(5.0),
@@ -169,9 +186,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                       borderRadius: BorderRadius.circular(
                           20.0), // Optional: Add rounded corners
                       child: IconButton(
-                        onPressed: () {
-                          // Add your onPressed logic here
-                        },
+                        onPressed: () {},
                         icon: Icon(
                           Icons.message_outlined,
                           color: Colors.white, // Color of the icon
@@ -255,6 +270,36 @@ class _ARKitExampleState extends State<ARKitExample> {
     );
 
     arkitController.add(node);
+  }
+
+  Future<File> _getImageFileFromProvider(
+      ImageProvider<Object> imageProvider) async {
+    final completer = Completer<Uint8List>();
+    final imageStream = imageProvider.resolve(ImageConfiguration.empty);
+
+    imageStream
+        .addListener(ImageStreamListener((imageInfo, synchronousCall) async {
+      final byteData =
+          await imageInfo.image.toByteData(format: ImageByteFormat.png);
+      final uint8List = byteData!.buffer.asUint8List();
+      completer.complete(uint8List);
+    }));
+
+    final uint8List = await completer.future;
+
+    // Create a temporary file to save the image
+    final tempDir = await getTemporaryDirectory();
+    final currentTime = DateTime.now().millisecondsSinceEpoch;
+    final tempFile =
+        File('${tempDir.path}/temp_image_${currentTime.toString()}.png');
+
+    // Write the image bytes to the temporary file
+    await tempFile.writeAsBytes(uint8List);
+
+    // setState(() {
+    //   galleryFile = tempFile;
+    // });
+    return tempFile;
   }
 
   void _showPicker(BuildContext context, ImageSource source) async {
