@@ -87,7 +87,7 @@ class IntroScreen extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) {
-                        return CameraPage();
+                        return GalleryAccess();
                       },
                     ),
                   ),

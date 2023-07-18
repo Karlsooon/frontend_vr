@@ -11,7 +11,8 @@ import 'package:flutter/services.dart';
 import 'package:arkit_plugin/arkit_plugin.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:vector_math/vector_math_64.dart' as vector_math;
-import 'package:camera/camera.dart';
+import 'result_page.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,70 +25,34 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(primaryColor: Colors.green),
-      home: const CameraPage(),
+      home: const GalleryAccess(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class CameraPage extends StatefulWidget {
-  const CameraPage({Key? key});
+class GalleryAccess extends StatefulWidget {
+  const GalleryAccess({Key? key});
 
   @override
-  _CameraPageState createState() => _CameraPageState();
+  State<GalleryAccess> createState() => _GalleryAccessState();
 }
 
-class _CameraPageState extends State<CameraPage> {
-  late CameraController _cameraController;
-  late Future<void> _initializeCameraController;
+class _GalleryAccessState extends State<GalleryAccess> {
   File? galleryFile;
   final picker = ImagePicker();
   String backendResult = '';
 
   @override
-  void initState() {
-    super.initState();
-    _initializeCameraController = initCameraController();
-  }
-
-  @override
-  void dispose() {
-    _cameraController.dispose();
-    super.dispose();
-  }
-
-  Future<void> initCameraController() async {
-    final cameras = await availableCameras();
-    _cameraController = CameraController(cameras.first, ResolutionPreset.medium);
-    await _cameraController.initialize();
-    if (!mounted) return;
-    setState(() {});
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Camera Access'),
+        title: const Text('Gallery and Camera Access'),
         backgroundColor: const Color.fromARGB(255, 47, 66, 210),
-        actions: [
-          IconButton(
-            onPressed: () {
-              // Open settings page
-            },
-            icon: const Icon(Icons.settings),
-          ),
-        ],
+        actions: const [],
       ),
       body: Stack(
         children: [
-          if (_cameraController.value.isInitialized)
-            Positioned.fill(
-              child: AspectRatio(
-                aspectRatio: _cameraController.value.aspectRatio,
-                child: CameraPreview(_cameraController),
-              ),
-            ),
           Positioned(
             top: 580,
             right: 20,
@@ -111,7 +76,13 @@ class _CameraPageState extends State<CameraPage> {
             left: 30,
             child: GestureDetector(
               onTap: () {
-                _takePhoto();
+                // _showPicker(context, ImageSource.camera);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ARKitExample(func: print),
+                  ),
+                );
               },
               child: Container(
                 width: 50,
@@ -124,6 +95,31 @@ class _CameraPageState extends State<CameraPage> {
               ),
             ),
           ),
+          Center(
+            child: SizedBox(
+              height: 200.0,
+              width: 300.0,
+              child: galleryFile == null
+                  ? const Center(child: Text('Sorry, nothing selected!'))
+                  : Image.file(galleryFile!),
+            ),
+          ),
+          if (galleryFile != null)
+            Positioned(
+              bottom: 0,
+              child: FractionalTranslation(
+                translation: const Offset(0, 0),
+                child: SizedBox(
+                  height: 300,
+                  width: 300,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(),
+                  ),
+                ),
+              ),
+            ),
+          // if (galleryFile != null)
+          //   ARKitExample(), // Add ARKitExample widget to display AR content
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -140,15 +136,6 @@ class _CameraPageState extends State<CameraPage> {
     if (pickedFile != null) {
       setState(() {
         galleryFile = File(pickedFile.path);
-      });
-    }
-  }
-
-  void _takePhoto() async {
-    if (_cameraController.value.isInitialized) {
-      final image = await _cameraController.takePicture();
-      setState(() {
-        galleryFile = File(image.path);
       });
     }
   }
@@ -197,50 +184,224 @@ class _CameraPageState extends State<CameraPage> {
   }
 }
 
-class ResultPage extends StatefulWidget {
-  final String result;
-
-  const ResultPage({Key? key, required this.result}) : super(key: key);
+class ARKitExample extends StatefulWidget {
+  final Function func;
+  const ARKitExample({Key? key, required this.func}) : super(key: key);
 
   @override
-  _ResultPageState createState() => _ResultPageState();
+  _ARKitExampleState createState() => _ARKitExampleState();
 }
 
-class _ResultPageState extends State<ResultPage> {
-  FlutterTts flutterTts = FlutterTts();
+class _ARKitExampleState extends State<ARKitExample> {
+  late ARKitController arkitController;
 
   @override
   void initState() {
     super.initState();
-    speakResult();
-  }
-
-  Future<void> speakResult() async {
-    await flutterTts.setLanguage('en-US');
-    await flutterTts.setPitch(0.6);
-    await flutterTts.setSpeechRate(0.6);
-    await flutterTts.speak(widget.result);
   }
 
   @override
   void dispose() {
-    flutterTts.stop();
+    arkitController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Result'),
+      body: Stack(
+        children: [
+          ARKitSceneView(
+            onARKitViewCreated: onARKitViewCreated,
+          ),
+          Align(
+              alignment: Alignment.topCenter,
+              child: Column(children: [
+                Container(
+                  height: 80,
+                  margin: EdgeInsets.only(top: 40.0, left: 10.0, right: 10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          // Add your onPressed logic here
+                        },
+                        icon: Icon(
+                          Icons.arrow_back_ios_new_outlined,
+                          color: Colors.white, // Color of the icon
+                        ),
+                        iconSize: 35,
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          // Add your onPressed logic here
+                        },
+                        icon: Icon(
+                          Icons.light_mode_outlined,
+                          color: Colors.white, // Color of the icon
+                        ),
+                        iconSize: 35,
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.only(top: 150.0),
+                  child: Transform.scale(
+                      scale: 4,
+                      child: SvgPicture.asset(
+                        'lib/images/focus.svg', // Replace with your SVG file path
+                        width: 100, // Adjust the width as needed
+                        height: 100, // Adjust the height as needed
+                      )),
+                )
+              ])),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              height: 160, // Adjust the height as needed
+              margin: EdgeInsets.only(bottom: 40.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(16.0),
+                    child: Material(
+                      color:
+                          Color(0xFF462B9C), // Background color of the button
+                      borderRadius: BorderRadius.circular(
+                          20.0), // Optional: Add rounded corners
+                      child: IconButton(
+                        onPressed: () {
+                          // Add your onPressed logic here
+                        },
+                        icon: Icon(
+                          Icons.photo_library_outlined,
+                          color: Colors.white, // Color of the icon
+                        ),
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Add your onPressed logic here
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.all(5.0),
+                      shape: CircleBorder(),
+                      primary: Colors.white, // White background for the button
+                      onPrimary: Colors
+                          .black, // Black color for the text/icon inside the button
+                      elevation:
+                          4.0, // Optional: Add some elevation for a shadow effect
+                    ),
+                    child: Container(
+                      width: 100.0,
+                      height: 100.0,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors
+                              .black, // Black border around the white circle
+                          width: 8.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(16.0),
+                    child: Material(
+                      color:
+                          Color(0xFF462B9C), // Background color of the button
+                      borderRadius: BorderRadius.circular(
+                          20.0), // Optional: Add rounded corners
+                      child: IconButton(
+                        onPressed: () {
+                          // Add your onPressed logic here
+                        },
+                        icon: Icon(
+                          Icons.message_outlined,
+                          color: Colors.white, // Color of the icon
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Text(
-          widget.result,
-          style: const TextStyle(fontSize: 18),
-        ),
-      ),
+      // floatingActionButton:
+      // FloatingActionButton(
+      //   onPressed: () async {
+      //     final image = await arkitController.snapshot();
+
+      //     var result = await getGptResultFromBackend(image);
+      //     print(result);
+      //     if (result == null) {
+      //       Navigator.push(
+      //         context,
+      //         MaterialPageRoute(
+      //           builder: (context) => ResultPage(result: result),
+      //         ),
+      //       );
+      //     }
+      //   },
+      //   child: const Icon(Icons.send),
+      // ),
     );
+  }
+
+  Future<int> getStreamLength(MemoryImage stream) async {
+    return stream.bytes.length;
+  }
+
+  Future<String> getGptResultFromBackend(ImageProvider<Object> image) async {
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://35.234.108.24:8000/process_image'),
+    );
+    final completer = Completer<Uint8List>();
+    final imageStream = image.resolve(ImageConfiguration.empty);
+
+    imageStream
+        .addListener(ImageStreamListener((imageInfo, synchronousCall) async {
+      final byteData =
+          await imageInfo.image.toByteData(format: ImageByteFormat.png);
+      final bytes = byteData!.buffer.asUint8List();
+      completer.complete(bytes);
+    }));
+
+    final bytes = await completer.future;
+    final multipartFile =
+        http.MultipartFile.fromBytes('image', bytes, filename: 'image.png');
+    request.files.add(multipartFile);
+    print(await multipartFile.finalize().length);
+    try {
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        var caption = await response.stream.bytesToString();
+        return caption;
+      } else {
+        return 'Error: ${response.statusCode}';
+      }
+    } catch (e) {
+      return 'Error: $e';
+    }
+  }
+
+  void onARKitViewCreated(ARKitController arkitController) {
+    this.arkitController = arkitController;
+  }
+
+  void addARKitNode(ARKitController arkitController) {
+    final node = ARKitNode(
+      geometry: ARKitSphere(radius: 0.1),
+      position: vector_math.Vector3(0, 0, -0.5),
+    );
+
+    arkitController.add(node);
   }
 }
