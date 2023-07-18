@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:groceryapp/pages/gallery_page.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -25,162 +26,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(primaryColor: Colors.green),
-      home: const GalleryAccess(),
+      home: const ARKitExample(
+        func: print,
+      ),
       debugShowCheckedModeBanner: false,
     );
-  }
-}
-
-class GalleryAccess extends StatefulWidget {
-  const GalleryAccess({Key? key});
-
-  @override
-  State<GalleryAccess> createState() => _GalleryAccessState();
-}
-
-class _GalleryAccessState extends State<GalleryAccess> {
-  File? galleryFile;
-  final picker = ImagePicker();
-  String backendResult = '';
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gallery and Camera Access'),
-        backgroundColor: const Color.fromARGB(255, 47, 66, 210),
-        actions: const [],
-      ),
-      body: Stack(
-        children: [
-          Positioned(
-            top: 580,
-            right: 20,
-            child: GestureDetector(
-              onTap: () {
-                _showPicker(context, ImageSource.gallery);
-              },
-              child: Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.photo_library),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 580,
-            left: 30,
-            child: GestureDetector(
-              onTap: () {
-                // _showPicker(context, ImageSource.camera);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ARKitExample(func: print),
-                  ),
-                );
-              },
-              child: Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.camera_alt),
-              ),
-            ),
-          ),
-          Center(
-            child: SizedBox(
-              height: 200.0,
-              width: 300.0,
-              child: galleryFile == null
-                  ? const Center(child: Text('Sorry, nothing selected!'))
-                  : Image.file(galleryFile!),
-            ),
-          ),
-          if (galleryFile != null)
-            Positioned(
-              bottom: 0,
-              child: FractionalTranslation(
-                translation: const Offset(0, 0),
-                child: SizedBox(
-                  height: 300,
-                  width: 300,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(),
-                  ),
-                ),
-              ),
-            ),
-          // if (galleryFile != null)
-          //   ARKitExample(), // Add ARKitExample widget to display AR content
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _getGptResultFromBackend(context);
-        },
-        child: const Icon(Icons.send),
-      ),
-    );
-  }
-
-  void _showPicker(BuildContext context, ImageSource source) async {
-    final pickedFile = await picker.pickImage(source: source);
-    if (pickedFile != null) {
-      setState(() {
-        galleryFile = File(pickedFile.path);
-      });
-    }
-  }
-
-  Future<void> _sendImageToBackend() async {
-    if (galleryFile != null) {
-      var result = await getGptResultFromBackend(galleryFile!);
-      setState(() {
-        backendResult = result;
-      });
-    }
-  }
-
-  Future<String> getGptResultFromBackend(File imageFile) async {
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('http://35.234.108.24:8000/process_image'),
-    );
-    request.files.add(
-      await http.MultipartFile.fromPath('file', imageFile.path),
-    );
-
-    try {
-      var response = await request.send();
-      if (response.statusCode == 200) {
-        var caption = await response.stream.bytesToString();
-        return caption;
-      } else {
-        return 'Error: ${response.statusCode}';
-      }
-    } catch (e) {
-      return 'Error: $e';
-    }
-  }
-
-  void _getGptResultFromBackend(BuildContext context) async {
-    if (galleryFile != null) {
-      var result = await getGptResultFromBackend(galleryFile!);
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ResultPage(result: result),
-        ),
-      );
-    }
   }
 }
 
@@ -194,7 +44,8 @@ class ARKitExample extends StatefulWidget {
 
 class _ARKitExampleState extends State<ARKitExample> {
   late ARKitController arkitController;
-
+  File galleryFile = File('');
+  final picker = ImagePicker();
   @override
   void initState() {
     super.initState();
@@ -275,6 +126,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                       child: IconButton(
                         onPressed: () {
                           // Add your onPressed logic here
+                          _showPicker(context, ImageSource.gallery);
                         },
                         icon: Icon(
                           Icons.photo_library_outlined,
@@ -403,5 +255,20 @@ class _ARKitExampleState extends State<ARKitExample> {
     );
 
     arkitController.add(node);
+  }
+
+  void _showPicker(BuildContext context, ImageSource source) async {
+    final pickedFile = await picker.pickImage(source: source);
+    if (pickedFile != null) {
+      setState(() {
+        galleryFile = File(pickedFile.path);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => GalleryAccess(galleryFile: galleryFile),
+          ),
+        );
+      });
+    }
   }
 }
