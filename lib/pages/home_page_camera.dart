@@ -48,6 +48,9 @@ class ARKitExample extends StatefulWidget {
 class _ARKitExampleState extends State<ARKitExample> {
   late ARKitController arkitController;
   File galleryFile = File('');
+  var isLoading = false;
+  var isResult = false;
+  String? resultData;
   final picker = ImagePicker();
   @override
   void initState() {
@@ -109,12 +112,16 @@ class _ARKitExampleState extends State<ARKitExample> {
                 Container(
                   margin: EdgeInsets.only(top: 150.0),
                   child: Transform.scale(
-                      scale: 4,
-                      child: SvgPicture.asset(
-                        'lib/images/focus.svg', // Replace with your SVG file path
-                        width: 100, // Adjust the width as needed
-                        height: 100, // Adjust the height as needed
-                      )),
+                      scale: isLoading ? 0.5 : 4,
+                      child: isLoading
+                          ? Image.asset(
+                              'lib/images/spinner.gif',
+                            )
+                          : SvgPicture.asset(
+                              'lib/images/focus.svg', // Replace with your SVG file path
+                              width: 100, // Adjust the width as needed
+                              height: 100, // Adjust the height as needed
+                            )),
                 )
               ])),
           Align(
@@ -146,15 +153,24 @@ class _ARKitExampleState extends State<ARKitExample> {
                   ),
                   ElevatedButton(
                     onPressed: () async {
+                      if (isLoading) return;
+                      print('sent!');
+                      setState(() {
+                        isLoading = true;
+                      });
                       final image = await arkitController.snapshot();
-                      final result = await _getImageFileFromProvider(image);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              GalleryAccess(galleryFile: result),
-                        ),
-                      );
+                      final imageFile = await _getImageFileFromProvider(image);
+                      final result = await getGptResultFromBackend(imageFile);
+                      print(result);
+                      setState(() {
+                        isLoading = false;
+                      });
+                      if (result != null) {
+                        setState(() {
+                          //isResult = true;
+                          resultData = result;
+                        });
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.all(5.0),
@@ -186,7 +202,13 @@ class _ARKitExampleState extends State<ARKitExample> {
                       borderRadius: BorderRadius.circular(
                           20.0), // Optional: Add rounded corners
                       child: IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          if (!isLoading) {
+                            setState(() {
+                              isResult = true;
+                            });
+                          }
+                        },
                         icon: Icon(
                           Icons.message_outlined,
                           color: Colors.white, // Color of the icon
@@ -198,6 +220,58 @@ class _ARKitExampleState extends State<ARKitExample> {
               ),
             ),
           ),
+          isResult
+              ? Expanded(
+                  child: Align(
+                      alignment: FractionalOffset.bottomCenter,
+                      child: Container(
+                          width: 430,
+                          height: 491,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(50),
+                              color: Color(0xff462b9c)),
+                          padding:
+                              EdgeInsets.only(left: 20, right: 20, top: 20),
+                          child: Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Column(children: [
+                                Align(
+                                  alignment: Alignment.topCenter,
+                                  child: Container(
+                                    margin: EdgeInsets.only(bottom: 20),
+                                    child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text('Result',
+                                              style: TextStyle(
+                                                  fontSize: 32,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white)),
+                                          IconButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                isResult = false;
+                                              });
+                                            },
+                                            icon: Icon(
+                                              Icons.close_outlined,
+                                              color: Colors
+                                                  .white, // Color of the icon
+                                            ),
+                                          ),
+                                        ]),
+                                  ),
+                                ),
+                                Text(
+                                  '${resultData}',
+                                  style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white),
+                                )
+                              ])))))
+              : Container()
         ],
       ),
       // floatingActionButton:
@@ -221,31 +295,20 @@ class _ARKitExampleState extends State<ARKitExample> {
     );
   }
 
-  Future<int> getStreamLength(MemoryImage stream) async {
-    return stream.bytes.length;
-  }
-
-  Future<String> getGptResultFromBackend(ImageProvider<Object> image) async {
+  Future<String?> getGptResultFromBackend(imageFile) async {
     var request = http.MultipartRequest(
       'POST',
       Uri.parse('http://35.234.108.24:8000/process_image'),
     );
-    final completer = Completer<Uint8List>();
-    final imageStream = image.resolve(ImageConfiguration.empty);
 
-    imageStream
-        .addListener(ImageStreamListener((imageInfo, synchronousCall) async {
-      final byteData =
-          await imageInfo.image.toByteData(format: ImageByteFormat.png);
-      final bytes = byteData!.buffer.asUint8List();
-      completer.complete(bytes);
-    }));
-
-    final bytes = await completer.future;
-    final multipartFile =
-        http.MultipartFile.fromBytes('image', bytes, filename: 'image.png');
+    final imageBytes = await imageFile.readAsBytes();
+    final multipartFile = http.MultipartFile.fromBytes(
+      'image',
+      imageBytes,
+      filename: 'image.png',
+    );
     request.files.add(multipartFile);
-    print(await multipartFile.finalize().length);
+
     try {
       var response = await request.send();
       if (response.statusCode == 200) {

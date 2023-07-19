@@ -13,7 +13,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:vector_math/vector_math_64.dart' as vector_math;
 import 'result_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
+import 'home_page_camera.dart';
 class GalleryAccess extends StatefulWidget {
   final File galleryFile;
   const GalleryAccess({Key? key, required this.galleryFile}) : super(key: key);
@@ -23,10 +23,24 @@ class GalleryAccess extends StatefulWidget {
 }
 
 class _GalleryAccessState extends State<GalleryAccess> {
-    Future<String>? _result;
+  Future<String>? _result;
+  var isLoading = false;
+  String? resultData;
   @override
   void initState() {
     super.initState();
+    setState(() {
+      isLoading = true;
+    });
+
+    getGptResultFromBackend().then((value) {
+      setState(() {
+        isLoading = false;
+      });
+      setState(() {
+        resultData = value;
+      });
+    });
   }
 
   @override
@@ -51,8 +65,14 @@ class _GalleryAccessState extends State<GalleryAccess> {
                       children: [
                         IconButton(
                           onPressed: () {
-                            // Add your onPressed logic here
-                          },
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) =>
+                          //         ARKitExample(), // Navigate to IntroScreen
+                          //   ),
+                          // ); // Navigate back when the button is pressed
+                        },
                           icon: Icon(
                             Icons.arrow_back_ios_new_outlined,
                             color: Colors.white, // Color of the icon
@@ -72,6 +92,13 @@ class _GalleryAccessState extends State<GalleryAccess> {
                       ],
                     ),
                   ),
+                  Transform.scale(
+                      scale: 0.5,
+                      child: isLoading
+                          ? Image.asset(
+                              'lib/images/spinner.gif',
+                            )
+                          : Container()),
                 ])),
             Align(
               alignment: Alignment.bottomCenter,
@@ -109,18 +136,15 @@ class _GalleryAccessState extends State<GalleryAccess> {
                             20.0), // Optional: Add rounded corners
                         child: IconButton(
                           onPressed: () async {
-                            // Send the chosen image to the backend and get the result
-                            // _result = getGptResultFromBackend();
-                            // var result = await _result;
-
-                            // if (result != null) {
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //       builder: (context) => ResultPage(result: result),
-                            //     ),
-                            //   );
-                            // }
+                            if (resultData != null && !isLoading) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ResultPage(result: '${resultData}'),
+                                ),
+                              );
+                            }
                           },
                           icon: Icon(
                             Icons.message_outlined,
@@ -158,7 +182,8 @@ class _GalleryAccessState extends State<GalleryAccess> {
       ),
     );
   }
-    Future<String?> getGptResultFromBackend() async {
+
+  Future<String?> getGptResultFromBackend() async {
     var request = http.MultipartRequest(
       'POST',
       Uri.parse('http://35.234.108.24:8000/process_image'),
