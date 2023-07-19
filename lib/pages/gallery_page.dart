@@ -14,6 +14,7 @@ import 'package:vector_math/vector_math_64.dart' as vector_math;
 import 'result_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'home_page_camera.dart';
+
 class GalleryAccess extends StatefulWidget {
   final File galleryFile;
   const GalleryAccess({Key? key, required this.galleryFile}) : super(key: key);
@@ -23,6 +24,11 @@ class GalleryAccess extends StatefulWidget {
 }
 
 class _GalleryAccessState extends State<GalleryAccess> {
+  FlutterTts flutterTts = FlutterTts();
+  bool isPlayerOn = false; // Create the instance of FlutterTts
+
+  var isResult = false;
+
   Future<String>? _result;
   var isLoading = false;
   String? resultData;
@@ -65,14 +71,14 @@ class _GalleryAccessState extends State<GalleryAccess> {
                       children: [
                         IconButton(
                           onPressed: () {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) =>
-                          //         ARKitExample(), // Navigate to IntroScreen
-                          //   ),
-                          // ); // Navigate back when the button is pressed
-                        },
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ARKitExample(
+                                    func: print), // Navigate to IntroScreen
+                              ),
+                            ); // Navigate back when the button is pressed
+                          },
                           icon: Icon(
                             Icons.arrow_back_ios_new_outlined,
                             color: Colors.white, // Color of the icon
@@ -108,6 +114,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    
                     Container(
                       padding: EdgeInsets.all(16.0),
                       child: Material(
@@ -117,33 +124,10 @@ class _GalleryAccessState extends State<GalleryAccess> {
                             20.0), // Optional: Add rounded corners
                         child: IconButton(
                           onPressed: () {
-                            // Add your onPressed logic here
-                          },
-                          icon: Icon(
-                            Icons.monitor_heart_outlined,
-                            color: Colors.white, // Color of the icon
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 1),
-                    Container(
-                      padding: EdgeInsets.all(16.0),
-                      child: Material(
-                        color:
-                            Color(0xFF462B9C), // Background color of the button
-                        borderRadius: BorderRadius.circular(
-                            20.0), // Optional: Add rounded corners
-                        child: IconButton(
-                          onPressed: () async {
-                            if (resultData != null && !isLoading) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      ResultPage(result: '${resultData}'),
-                                ),
-                              );
+                            if (!isLoading) {
+                              setState(() {
+                                isResult = true;
+                              });
                             }
                           },
                           icon: Icon(
@@ -154,29 +138,63 @@ class _GalleryAccessState extends State<GalleryAccess> {
                         ),
                       ),
                     ),
-                    SizedBox(width: 1),
-                    Container(
-                      padding: EdgeInsets.all(16.0),
-                      child: Material(
-                        color:
-                            Color(0xFF462B9C), // Background color of the button
-                        borderRadius: BorderRadius.circular(
-                            20.0), // Optional: Add rounded corners
-                        child: IconButton(
-                          onPressed: () {
-                            // Add your onPressed logic here
-                          },
-                          icon: Icon(
-                            Icons.delete_outline_outlined,
-                            color: Colors.white, // Color of the icon
-                          ),
-                        ),
-                      ),
-                    ),
+                    
                   ],
                 ),
               ),
             ),
+            isResult
+                ? Expanded(
+                    child: Align(
+                        alignment: FractionalOffset.bottomCenter,
+                        child: Container(
+                            width: 430,
+                            height: 491,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(50),
+                                color: Color(0xff462b9c)),
+                            padding:
+                                EdgeInsets.only(left: 20, right: 20, top: 20),
+                            child: Align(
+                                alignment: Alignment.bottomCenter,
+                                child: Column(children: [
+                                  Align(
+                                    alignment: Alignment.topCenter,
+                                    child: Container(
+                                      margin: EdgeInsets.only(bottom: 20),
+                                      child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text('Result',
+                                                style: TextStyle(
+                                                    fontSize: 32,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white)),
+                                            IconButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  isResult = false;
+                                                });
+                                              },
+                                              icon: Icon(
+                                                Icons.close_outlined,
+                                                color: Colors
+                                                    .white, // Color of the icon
+                                              ),
+                                            ),
+                                          ]),
+                                    ),
+                                  ),
+                                  Text(
+                                    '${resultData}',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white),
+                                  )
+                                ])))))
+                : Container()
           ],
         ),
       ),
@@ -208,5 +226,12 @@ class _GalleryAccessState extends State<GalleryAccess> {
     } catch (e) {
       return 'Error: $e';
     }
+  }
+
+  Future<void> speakResult() async {
+    await flutterTts.setLanguage('en-US');
+    await flutterTts.setPitch(0.6);
+    await flutterTts.setSpeechRate(0.6);
+    await flutterTts.speak(resultData ?? ''); // Use resultData for speaking
   }
 }
