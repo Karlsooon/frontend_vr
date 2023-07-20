@@ -324,15 +324,15 @@ class _ARKitExampleState extends State<ARKitExample> {
     await flutterTts.speak(resultData ?? ''); // Use resultData for speaking
   }
 
-  Future<String?> getGptResultFromBackend(imageFile) async {
+ Future<String?> getGptResultFromBackend(File imageFile) async {
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://127.0.0.1:8000/process_image'),
+      Uri.parse('http://35.234.108.24:8000/process_image'),
     );
 
     final imageBytes = await imageFile.readAsBytes();
     final multipartFile = http.MultipartFile.fromBytes(
-      'image',
+      'file', // Make sure 'file' matches the key used in the backend
       imageBytes,
       filename: 'image.png',
     );
@@ -341,8 +341,8 @@ class _ARKitExampleState extends State<ARKitExample> {
     try {
       var response = await request.send();
       if (response.statusCode == 200) {
-        var caption = await response.stream.bytesToString();
-        return caption;
+        var responseBody = await response.stream.bytesToString();
+        return responseBody;
       } else {
         return 'Error: ${response.statusCode}';
       }
@@ -350,6 +350,9 @@ class _ARKitExampleState extends State<ARKitExample> {
       return 'Error: $e';
     }
   }
+
+
+  
 
   void onARKitViewCreated(ARKitController arkitController) {
     this.arkitController = arkitController;
@@ -409,14 +412,36 @@ class _ARKitExampleState extends State<ARKitExample> {
     }
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     String message = _chatController.text.trim();
     if (message.isNotEmpty) {
       setState(() {
         chatHistory.add("You: $message");
-        // Add logic here to send the message to a chat server or handle it as needed
       });
       _chatController.clear();
+
+      // Send the taken image file to the backend
+      if (galleryFile != null) {
+        try {
+          setState(() {
+            isLoading = true;
+          });
+
+          final result = await getGptResultFromBackend(galleryFile);
+          setState(() {
+            isLoading = false;
+            resultData = result;
+            isResult = true;
+          });
+        } catch (e) {
+          setState(() {
+            isLoading = false;
+            resultData = 'Error: $e';
+            isResult = true;
+          });
+        }
+      }
     }
   }
+
 }

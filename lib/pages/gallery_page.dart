@@ -1,18 +1,12 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
-import 'package:arkit_plugin/arkit_plugin.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:vector_math/vector_math_64.dart' as vector_math;
-import 'result_page.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'home_page_camera.dart';
 
 class GalleryAccess extends StatefulWidget {
@@ -25,45 +19,82 @@ class GalleryAccess extends StatefulWidget {
 
 class _GalleryAccessState extends State<GalleryAccess> {
   FlutterTts flutterTts = FlutterTts();
-  bool isPlayerOn = false; // Create the instance of FlutterTts
-
+  bool isPlayerOn = false;
   var isResult = false;
-
-  Future<String>? _result;
   var isLoading = false;
   String? resultData;
+
   @override
   void initState() {
     super.initState();
+    _getResultFromBackend();
+  }
+
+  Future<void> _getResultFromBackend() async {
     setState(() {
       isLoading = true;
     });
 
-    getGptResultFromBackend().then((value) {
+    try {
+      // Create a multipart request for sending the image
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('http://35.234.108.24:8000/process_image'),
+      );
+
+      // Add the image file to the request
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file', // The field name should match the one in the Django view
+          widget.galleryFile.path,
+        ),
+      );
+
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        var responseBody = await response.stream.bytesToString();
+        setState(() {
+          isLoading = false;
+          resultData = responseBody;
+        });
+        speakResult(); // Speak the result when it's received
+      } else {
+        setState(() {
+          isLoading = false;
+          resultData = 'Error: ${response.statusCode}';
+        });
+      }
+    } catch (e) {
       setState(() {
         isLoading = false;
+        resultData = 'Error: $e';
       });
-      setState(() {
-        resultData = value;
-      });
-    });
+    }
   }
-  
+
+  Future<void> speakResult() async {
+    await flutterTts.setLanguage('en-US');
+    await flutterTts.setPitch(0.6);
+    await flutterTts.setSpeechRate(0.6);
+    await flutterTts.speak(resultData ?? '');
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-            image: DecorationImage(
-          image: FileImage(widget.galleryFile),
-          fit: BoxFit.cover,
-        )),
+          image: DecorationImage(
+            image: FileImage(widget.galleryFile),
+            fit: BoxFit.cover,
+          ),
+        ),
         child: Stack(
           children: [
             Align(
-                alignment: Alignment.topCenter,
-                child: Column(children: [
+              alignment: Alignment.topCenter,
+              child: Column(
+                children: [
                   Container(
                     height: 80,
                     margin: EdgeInsets.only(top: 40.0, left: 10.0, right: 10.0),
@@ -100,29 +131,29 @@ class _GalleryAccessState extends State<GalleryAccess> {
                     ),
                   ),
                   Transform.scale(
-                      scale: 0.5,
-                      child: isLoading
-                          ? Image.asset(
-                              'lib/images/spinner.gif',
-                            )
-                          : Container()),
-                ])),
+                    scale: 0.5,
+                    child: isLoading
+                        ? Image.asset(
+                            'lib/images/spinner.gif',
+                          )
+                        : Container(),
+                  ),
+                ],
+              ),
+            ),
             Align(
               alignment: Alignment.bottomCenter,
               child: Container(
-                height: 160, // Adjust the height as needed
+                height: 160,
                 margin: EdgeInsets.only(bottom: 40.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    
                     Container(
                       padding: EdgeInsets.all(16.0),
                       child: Material(
-                        color:
-                            Color(0xFF462B9C), // Background color of the button
-                        borderRadius: BorderRadius.circular(
-                            20.0), // Optional: Add rounded corners
+                        color: Color(0xFF462B9C),
+                        borderRadius: BorderRadius.circular(20.0),
                         child: IconButton(
                           onPressed: () {
                             if (!isLoading) {
@@ -133,13 +164,12 @@ class _GalleryAccessState extends State<GalleryAccess> {
                           },
                           icon: Icon(
                             Icons.message_outlined,
-                            color: Colors.white, // Color of the icon
+                            color: Colors.white,
                           ),
                           iconSize: 60,
                         ),
                       ),
                     ),
-                    
                   ],
                 ),
               ),
@@ -147,93 +177,69 @@ class _GalleryAccessState extends State<GalleryAccess> {
             isResult
                 ? Expanded(
                     child: Align(
-                        alignment: FractionalOffset.bottomCenter,
-                        child: Container(
-                            width: 430,
-                            height: 491,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(50),
-                                color: Color(0xff462b9c)),
-                            padding:
-                                EdgeInsets.only(left: 20, right: 20, top: 20),
-                            child: Align(
-                                alignment: Alignment.bottomCenter,
-                                child: Column(children: [
-                                  Align(
-                                    alignment: Alignment.topCenter,
-                                    child: Container(
-                                      margin: EdgeInsets.only(bottom: 20),
-                                      child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text('Result',
-                                                style: TextStyle(
-                                                    fontSize: 32,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white)),
-                                            IconButton(
-                                              onPressed: () {
-                                                setState(() {
-                                                  isResult = false;
-                                                });
-                                              },
-                                              icon: Icon(
-                                                Icons.close_outlined,
-                                                color: Colors
-                                                    .white, // Color of the icon
-                                              ),
-                                            ),
-                                          ]),
-                                    ),
+                      alignment: FractionalOffset.bottomCenter,
+                      child: Container(
+                        width: 430,
+                        height: 491,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(50),
+                          color: Color(0xff462b9c),
+                        ),
+                        padding: EdgeInsets.only(left: 20, right: 20, top: 20),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.topCenter,
+                                child: Container(
+                                  margin: EdgeInsets.only(bottom: 20),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Result',
+                                        style: TextStyle(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            isResult = false;
+                                          });
+                                        },
+                                        icon: Icon(
+                                          Icons.close_outlined,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    '${resultData}',
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white),
-                                  )
-                                ])))))
-                : Container()
+                                ),
+                              ),
+                              Text(
+                                '${resultData}',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : Container(),
           ],
         ),
       ),
     );
   }
-  
-
-  Future<String?> getGptResultFromBackend() async {
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('http://127.0.0.1:8000/process_image'),
-    );
-
-    final imageBytes = await widget.galleryFile.readAsBytes();
-    final multipartFile = http.MultipartFile.fromBytes(
-      'image',
-      imageBytes,
-      filename: 'image.png',
-    );
-    request.files.add(multipartFile);
-
-    try {
-      var response = await request.send();
-      if (response.statusCode == 200) {
-        var caption = await response.stream.bytesToString();
-        return caption;
-      } else {
-        return 'Error: ${response.statusCode}';
-      }
-    } catch (e) {
-      return 'Error: $e';
-    }
-  }
-
-  Future<void> speakResult() async {
-    await flutterTts.setLanguage('en-US');
-    await flutterTts.setPitch(0.6);
-    await flutterTts.setSpeechRate(0.6);
-    await flutterTts.speak(resultData ?? ''); // Use resultData for speaking
-  }
 }
+
