@@ -48,6 +48,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
       });
     });
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -200,11 +201,12 @@ class _GalleryAccessState extends State<GalleryAccess> {
       ),
     );
   }
+  
 
   Future<String?> getGptResultFromBackend() async {
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://35.234.108.24:8000/process_image'),
+      Uri.parse('http://127.0.0.1:8000/process_image'),
     );
 
     final imageBytes = await widget.galleryFile.readAsBytes();

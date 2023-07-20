@@ -46,6 +46,9 @@ class ARKitExample extends StatefulWidget {
 }
 
 class _ARKitExampleState extends State<ARKitExample> {
+  FlutterTts flutterTts = FlutterTts();
+  TextEditingController _chatController = TextEditingController();
+  List<String> chatHistory = [];
   late ARKitController arkitController;
   File galleryFile = File('');
   var isLoading = false;
@@ -269,7 +272,26 @@ class _ARKitExampleState extends State<ARKitExample> {
                                       fontSize: 20,
                                       fontWeight: FontWeight.w600,
                                       color: Colors.white),
-                                )
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _chatController,
+                                          decoration: InputDecoration(
+                                            hintText: 'Type your message...',
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        onPressed: _sendMessage,
+                                        icon: Icon(Icons.send),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ])))))
               : Container()
         ],
@@ -295,10 +317,17 @@ class _ARKitExampleState extends State<ARKitExample> {
     );
   }
 
+  Future<void> speakResult() async {
+    await flutterTts.setLanguage('en-US');
+    await flutterTts.setPitch(0.6);
+    await flutterTts.setSpeechRate(0.6);
+    await flutterTts.speak(resultData ?? ''); // Use resultData for speaking
+  }
+
   Future<String?> getGptResultFromBackend(imageFile) async {
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://35.234.108.24:8000/process_image'),
+      Uri.parse('http://127.0.0.1:8000/process_image'),
     );
 
     final imageBytes = await imageFile.readAsBytes();
@@ -377,6 +406,17 @@ class _ARKitExampleState extends State<ARKitExample> {
           ),
         );
       });
+    }
+  }
+
+  void _sendMessage() {
+    String message = _chatController.text.trim();
+    if (message.isNotEmpty) {
+      setState(() {
+        chatHistory.add("You: $message");
+        // Add logic here to send the message to a chat server or handle it as needed
+      });
+      _chatController.clear();
     }
   }
 }
