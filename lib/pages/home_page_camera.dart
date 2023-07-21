@@ -17,6 +17,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'intro_screen.dart';
 import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
+// import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(const MyApp());
@@ -46,6 +47,9 @@ class ARKitExample extends StatefulWidget {
 }
 
 class _ARKitExampleState extends State<ARKitExample> {
+  bool flash = false;
+  late CameraController _cameraController;
+  FlashMode _flashMode = FlashMode.off;
   FlutterTts flutterTts = FlutterTts();
   TextEditingController _chatController = TextEditingController();
   List<String> chatHistory = [];
@@ -58,11 +62,15 @@ class _ARKitExampleState extends State<ARKitExample> {
   @override
   void initState() {
     super.initState();
+    _initializeCamera(); // Initialize the camera controller
+
+    // _checkCameraPermissions();
   }
 
   @override
   void dispose() {
     arkitController.dispose();
+    _cameraController.dispose();
     super.dispose();
   }
 
@@ -101,11 +109,11 @@ class _ARKitExampleState extends State<ARKitExample> {
                       ),
                       IconButton(
                         onPressed: () {
-                          // Add your onPressed logic here
+                          _toggleFlashMode(); // Toggle the flash mode
                         },
                         icon: Icon(
-                          Icons.light_mode_outlined,
-                          color: Colors.white, // Color of the icon
+                          flash ? Icons.flash_on : Icons.flash_off,
+                          color: Colors.white,
                         ),
                         iconSize: 35,
                       ),
@@ -229,7 +237,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                       alignment: FractionalOffset.bottomCenter,
                       child: Container(
                           width: 430,
-                          height: 491,
+                          height: 600,
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(50),
                               color: Color(0xff462b9c)),
@@ -273,58 +281,48 @@ class _ARKitExampleState extends State<ARKitExample> {
                                       fontWeight: FontWeight.w600,
                                       color: Colors.white),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: TextField(
-                                          controller: _chatController,
-                                          decoration: InputDecoration(
-                                            hintText: 'Type your message...',
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        onPressed: _sendMessage,
-                                        icon: Icon(Icons.send),
-                                      ),
-                                    ],
-                                  ),
-                                ),
                               ])))))
               : Container()
         ],
       ),
-      // floatingActionButton:
-      // FloatingActionButton(
-      //   onPressed: () async {
-      //     final image = await arkitController.snapshot();
-
-      //     var result = await getGptResultFromBackend(image);
-      //     print(result);
-      //     if (result == null) {
-      //       Navigator.push(
-      //         context,
-      //         MaterialPageRoute(
-      //           builder: (context) => ResultPage(result: result),
-      //         ),
-      //       );
-      //     }
-      //   },
-      //   child: const Icon(Icons.send),
-      // ),
     );
+  }
+
+  void _setFlashMode(FlashMode flashMode) {
+    setState(() {
+      _flashMode = flashMode;
+    });
+    _cameraController.setFlashMode(flashMode);
+  }
+
+  void _toggleFlashMode() {
+    setState(() {
+      flash = !flash;
+    });
+    flash ? _setFlashMode(FlashMode.torch) : _setFlashMode(FlashMode.off);
+  }
+
+
+  IconData _getFlashIcon() {
+    switch (_flashMode) {
+      case FlashMode.off:
+        return Icons.flash_on;
+      case FlashMode.always:
+        return Icons.flash_off;
+      case FlashMode.auto:
+        return Icons.flash_auto;
+    }
+    return Icons.flash_off; // Default icon, should not reach here
   }
 
   Future<void> speakResult() async {
     await flutterTts.setLanguage('en-US');
-    await flutterTts.setPitch(0.6);
-    await flutterTts.setSpeechRate(0.6);
+    await flutterTts.setPitch(0.7);
+    await flutterTts.setSpeechRate(0.5);
     await flutterTts.speak(resultData ?? ''); // Use resultData for speaking
   }
 
- Future<String?> getGptResultFromBackend(File imageFile) async {
+  Future<String?> getGptResultFromBackend(File imageFile) async {
     var request = http.MultipartRequest(
       'POST',
       Uri.parse('http://35.234.108.24:8000/process_image'),
@@ -342,6 +340,7 @@ class _ARKitExampleState extends State<ARKitExample> {
       var response = await request.send();
       if (response.statusCode == 200) {
         var responseBody = await response.stream.bytesToString();
+        speakResult();
         return responseBody;
       } else {
         return 'Error: ${response.statusCode}';
@@ -350,9 +349,6 @@ class _ARKitExampleState extends State<ARKitExample> {
       return 'Error: $e';
     }
   }
-
-
-  
 
   void onARKitViewCreated(ARKitController arkitController) {
     this.arkitController = arkitController;
@@ -397,6 +393,34 @@ class _ARKitExampleState extends State<ARKitExample> {
     return tempFile;
   }
 
+  // Future<void> _checkCameraPermissions() async {
+  //   if (await Permission.camera.isGranted) {
+  //     _initializeCamera();
+  //   } else {
+  //     var status = await Permission.camera.request();
+  //     if (status.isGranted) {
+  //       _initializeCamera();
+  //     } else {
+  //       // Handle camera permission denied
+  //     }
+  //   }
+  // }
+
+  void _initializeCamera() async {
+    final cameras = await availableCameras();
+    // Initialize the CameraController with the desired camera
+    _cameraController = CameraController(cameras[0], ResolutionPreset.medium);
+    // Ensure that the camera is initialized before setting the flash mode
+    await _cameraController.initialize().then((_) {
+      setState(() {
+        // Update the flash mode based on the initial state
+        flash ? _setFlashMode(FlashMode.torch) : _setFlashMode(FlashMode.off);
+      });
+    }).catchError((error) {
+      print("Error initializing camera: $error");
+    });
+  }
+
   void _showPicker(BuildContext context, ImageSource source) async {
     final pickedFile = await picker.pickImage(source: source);
     if (pickedFile != null) {
@@ -411,37 +435,4 @@ class _ARKitExampleState extends State<ARKitExample> {
       });
     }
   }
-
-  void _sendMessage() async {
-    String message = _chatController.text.trim();
-    if (message.isNotEmpty) {
-      setState(() {
-        chatHistory.add("You: $message");
-      });
-      _chatController.clear();
-
-      // Send the taken image file to the backend
-      if (galleryFile != null) {
-        try {
-          setState(() {
-            isLoading = true;
-          });
-
-          final result = await getGptResultFromBackend(galleryFile);
-          setState(() {
-            isLoading = false;
-            resultData = result;
-            isResult = true;
-          });
-        } catch (e) {
-          setState(() {
-            isLoading = false;
-            resultData = 'Error: $e';
-            isResult = true;
-          });
-        }
-      }
-    }
-  }
-
 }

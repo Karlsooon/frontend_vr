@@ -29,6 +29,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
     super.initState();
     _getResultFromBackend();
   }
+  
 
   Future<void> _getResultFromBackend() async {
     setState(() {
@@ -74,8 +75,8 @@ class _GalleryAccessState extends State<GalleryAccess> {
 
   Future<void> speakResult() async {
     await flutterTts.setLanguage('en-US');
-    await flutterTts.setPitch(0.6);
-    await flutterTts.setSpeechRate(0.6);
+    await flutterTts.setPitch(0.7);
+    await flutterTts.setSpeechRate(0.5);
     await flutterTts.speak(resultData ?? '');
   }
 
@@ -180,7 +181,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
                       alignment: FractionalOffset.bottomCenter,
                       child: Container(
                         width: 430,
-                        height: 491,
+                        height: 600,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(50),
                           color: Color(0xff462b9c),
