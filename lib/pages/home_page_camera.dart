@@ -17,6 +17,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'intro_screen.dart';
 import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
+// import 'package:permission_handler/permission_handler.dart'; // Add this import
+
 // import 'package:permission_handler/permission_handler.dart';
 
 void main() {
@@ -59,18 +61,18 @@ class _ARKitExampleState extends State<ARKitExample> {
   var isResult = false;
   String? resultData;
   final picker = ImagePicker();
+
   @override
   void initState() {
     super.initState();
-    _initializeCamera(); // Initialize the camera controller
-
-    // _checkCameraPermissions();
+    // _checkCameraPermissions();  // Request camera permissions
+    // _initializeCamera(); // Initialize the camera controller
   }
 
   @override
   void dispose() {
     arkitController.dispose();
-    _cameraController.dispose();
+    // _cameraController.dispose();
     super.dispose();
   }
 
@@ -288,6 +290,16 @@ class _ARKitExampleState extends State<ARKitExample> {
     );
   }
 
+  // Future<void> _checkCameraPermissions() async {
+  //   var status = await Permission.camera.request();
+  //   if (status.isGranted) {
+  //     _initializeCamera();
+  //   } else {
+  //     // Handle camera permission denied
+  //     print("Camera permission denied");
+  //   }
+  // }
+
   void _setFlashMode(FlashMode flashMode) {
     setState(() {
       _flashMode = flashMode;
@@ -301,7 +313,6 @@ class _ARKitExampleState extends State<ARKitExample> {
     });
     flash ? _setFlashMode(FlashMode.torch) : _setFlashMode(FlashMode.off);
   }
-
 
   IconData _getFlashIcon() {
     switch (_flashMode) {
@@ -341,6 +352,7 @@ class _ARKitExampleState extends State<ARKitExample> {
       if (response.statusCode == 200) {
         var responseBody = await response.stream.bytesToString();
         speakResult();
+
         return responseBody;
       } else {
         return 'Error: ${response.statusCode}';
@@ -393,21 +405,13 @@ class _ARKitExampleState extends State<ARKitExample> {
     return tempFile;
   }
 
-  // Future<void> _checkCameraPermissions() async {
-  //   if (await Permission.camera.isGranted) {
-  //     _initializeCamera();
-  //   } else {
-  //     var status = await Permission.camera.request();
-  //     if (status.isGranted) {
-  //       _initializeCamera();
-  //     } else {
-  //       // Handle camera permission denied
-  //     }
-  //   }
-  // }
-
   void _initializeCamera() async {
     final cameras = await availableCameras();
+    if (cameras.isEmpty) {
+      print("No available cameras");
+      return;
+    }
+
     // Initialize the CameraController with the desired camera
     _cameraController = CameraController(cameras[0], ResolutionPreset.medium);
     // Ensure that the camera is initialized before setting the flash mode
