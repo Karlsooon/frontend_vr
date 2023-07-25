@@ -12,7 +12,6 @@ import 'package:flutter/services.dart';
 import 'package:arkit_plugin/arkit_plugin.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:vector_math/vector_math_64.dart' as vector_math;
-import 'result_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'intro_screen.dart';
 import 'package:camera/camera.dart';

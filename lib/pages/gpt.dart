@@ -61,14 +61,14 @@ class _ChatAppState extends State<ChatApp> {
     );
   }
 
-  void _sendMessage(String message) async {
+  Future<void> _sendMessage(String message) async {
     setState(() {
       _chatMessages.add(ChatMessage(sender: 'You', text: message));
     });
 
     try {
       var response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/chat_with_chatgpt'), // Replace with your backend URL
+        Uri.parse('http://YOUR_BACKEND_URL/chat_with_chatgpt/'), // Replace with your backend URL
         headers: {
           'Content-Type': 'application/json',
         },

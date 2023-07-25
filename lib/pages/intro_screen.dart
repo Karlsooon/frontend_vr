@@ -8,7 +8,7 @@ class IntroScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setEnabledSystemUIOverlays([]); // Hide the status bar
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
 
     // Get the screen width and height
     final screenWidth = MediaQuery.of(context).size.width;
