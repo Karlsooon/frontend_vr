@@ -115,7 +115,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
                           },
                           icon: Icon(
                             Icons.arrow_back_ios_new_outlined,
-                            color: Colors.white, // Color of the icon
+                            color: Colors.black, // Color of the icon
                           ),
                           iconSize: 35,
                         ),
@@ -156,7 +156,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
                       Icons.message_outlined,
                       color: Colors.white,
                       size: screenWidth *
-                          0.14, // Adjust the button size based on the screen width
+                          0.10, // Adjust the button size based on the screen width
                     ),
                   ),
                 ),

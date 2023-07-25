@@ -106,7 +106,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                         },
                         icon: Icon(
                           Icons.arrow_back_ios_new_outlined,
-                          color: Colors.white,
+                          color: Colors.black,
                         ),
                         iconSize: 35,
                       ),
@@ -151,7 +151,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                         icon: Icon(
                           Icons.photo_library_outlined,
                           color: Colors.white,
-                          size: screenWidth * 0.09, // Adjust the b
+                          size: screenWidth * 0.04, // Adjust the b
                         ),
                       ),
                     ),
@@ -217,7 +217,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                         icon: Icon(
                           Icons.message_outlined,
                           color: Colors.white,
-                          size: screenWidth * 0.09, // Adjust the b
+                          size: screenWidth * 0.04, // Adjust the b
                         ),
                       ),
                     ),
