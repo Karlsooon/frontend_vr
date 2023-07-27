@@ -17,94 +17,60 @@ class _ChatAppState extends State<ChatApp> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 213, 211, 211),
-        title: Row(
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('Chat with Object'),
+        ),
+        body: Column(
           children: [
-            CircleAvatar(
-              backgroundImage: AssetImage('lib/images/chat_icon.png'),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _chatMessages.length,
+                itemBuilder: (context, index) {
+                  return _chatMessages[index];
+                },
+              ),
             ),
-            SizedBox(width: 10),
-            Text(
-              'Object',
-              style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      decoration:
+                          InputDecoration(hintText: 'Type a message...'),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.send),
+                    onPressed: () {
+                      String message = _messageController.text.trim();
+                      if (message.isNotEmpty) {
+                        _sendMessage(message);
+                        _messageController.clear();
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
-      body: Stack(
-        children: [
-          _buildChatMessages(),
-          Positioned(
-            bottom: 20, // Adjust the distance from the bottom as needed
-            left: 20,
-            right: 0,
-            child: _buildMessageInput(),
-          ),
-        ],
-      ),
     );
   }
 
-  Widget _buildChatMessages() {
-    return Expanded(
-      child: ListView.builder(
-        itemCount: _chatMessages.length,
-        itemBuilder: (context, index) {
-          return _chatMessages[index];
-        },
-      ),
-    );
-  }
-
-  Widget _buildMessageInput() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      color: Colors.white,
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: TextField(
-                controller: _messageController,
-                decoration: InputDecoration(
-                  hintText: 'Type a message...',
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
-          ),
-          IconButton(
-            icon: Icon(Icons.send),
-            onPressed: () {
-              String message = _messageController.text.trim();
-              if (message.isNotEmpty) {
-                _sendMessage(message);
-                _messageController.clear();
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-    Future<void> _sendMessage(String message) async {
+  Future<void> _sendMessage(String message) async {
     setState(() {
       _chatMessages.add(ChatMessage(sender: 'You', text: message));
     });
 
     try {
       var response = await http.post(
-        Uri.parse('http://YOUR_BACKEND_URL/chat_with_chatgpt/'), // Replace with your backend URL
+        Uri.parse(
+            'http://127.0.0.1:8000//chat_with_chatgpt'), // Replace with your backend URL
         headers: {
           'Content-Type': 'application/json',
         },
@@ -116,11 +82,13 @@ class _ChatAppState extends State<ChatApp> {
         String chatGptResponse = responseBody['response'];
 
         setState(() {
-          _chatMessages.add(ChatMessage(sender: 'Object', text: chatGptResponse));
+          _chatMessages
+              .add(ChatMessage(sender: 'Object', text: chatGptResponse));
         });
       } else {
         setState(() {
-          _chatMessages.add(ChatMessage(sender: 'Object', text: 'Error: ${response.statusCode}'));
+          _chatMessages.add(ChatMessage(
+              sender: 'Object', text: 'Error: ${response.statusCode}'));
         });
       }
     } catch (e) {
@@ -131,68 +99,31 @@ class _ChatAppState extends State<ChatApp> {
   }
 }
 
-
-  void _sendMessage(String message) {
-    setState(() {
-      _chatMessages
-          .add(ChatMessage(sender: 'You', text: message, isUser: true));
-    });
-
-    // Simulating a response after 1 second
-    Future.delayed(Duration(seconds: 1), () {
-      setState(() {
-        _chatMessages.add(ChatMessage(
-          sender: 'John Doe',
-          text: 'Received: $message',
-          isUser: false,
-        ));
-      });
-    });
-  }
-}
-
 class ChatMessage extends StatelessWidget {
   final String sender;
   final String text;
-  final bool isUser;
 
-  const ChatMessage(
-      {required this.sender, required this.text, this.isUser = true});
+  ChatMessage({required this.sender, required this.text});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      padding: const EdgeInsets.all(8.0),
       child: Align(
-        alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+        alignment:
+            sender == 'You' ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
-          padding: EdgeInsets.all(12),
+          padding: EdgeInsets.all(12.0),
           decoration: BoxDecoration(
-            color: isUser
-                ? Color.fromARGB(255, 48, 162, 255)
-                : Color.fromARGB(255, 214, 218, 214),
-            borderRadius: BorderRadius.circular(20),
+            color: sender == 'You' ? Colors.blue : Colors.green,
+            borderRadius: BorderRadius.circular(16.0),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (!isUser)
-                Icon(Icons.account_circle, color: Colors.white, size: 28),
-              SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  text,
-                  style: TextStyle(
-                    color: isUser ? Colors.white : Colors.black,
-                    fontSize: 20,
-                  ),
-                ),
-              ),
-            ],
+          child: Text(
+            text,
+            style: TextStyle(color: Colors.white, fontSize: 16.0),
           ),
         ),
       ),
     );
   }
 }
-
