@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'gpt.dart';
 
 class GalleryAccess extends StatefulWidget {
   final File galleryFile;
@@ -91,6 +92,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
+          color: Colors.black,
           image: DecorationImage(
             image: FileImage(widget.galleryFile),
             fit: BoxFit.contain,
@@ -98,6 +100,129 @@ class _GalleryAccessState extends State<GalleryAccess> {
         ),
         child: Stack(
           children: [
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                height: 67,
+                color: Colors.black,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Padding added to move Button 1 to the right
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ChatApp(), // Navigate to the ChatApp page
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          primary: const Color.fromARGB(255, 255, 255, 255),
+                          onPrimary: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: Container(
+                          width: 60,
+                          height: 27,
+                          child: Center(
+                            child: Text(
+                              'chat',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.black, // Change text color here
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+
+                    // Existing code...
+
+                    // Padding added to move Button 3 to the left
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (!isLoading) {
+                            setState(() {
+                              isResult = true;
+                            });
+                          }
+                          // Add your functionality here for Button 3
+                          print('Button 2 clicked!');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          primary: Color.fromARGB(255, 249, 249, 249),
+                          onPrimary: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: Container(
+                          width: 60,
+                          height: 27,
+                          child: Center(
+                            child: Text(
+                              'show',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.black, // Change text color here
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Add some space between buttons
+                    SizedBox(width: 16),
+
+                    // Existing code...
+
+                    // Padding added to move Button 3 to the left
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // Add your functionality here for Button 3
+                          print('Button 3 clicked!');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          primary: const Color.fromARGB(255, 255, 255, 255),
+                          onPrimary: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: Container(
+                          width: 60,
+                          height: 27,
+                          child: Center(
+                            child: Text(
+                              'assistant',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.black, // Change text color here
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             Align(
               alignment: Alignment.topCenter,
               child: Column(
@@ -115,7 +240,8 @@ class _GalleryAccessState extends State<GalleryAccess> {
                           },
                           icon: Icon(
                             Icons.arrow_back_ios_new_outlined,
-                            color: Colors.black, // Color of the icon
+                            color: Color.fromARGB(
+                                255, 255, 255, 255), // Color of the icon
                           ),
                           iconSize: 35,
                         ),
@@ -133,35 +259,6 @@ class _GalleryAccessState extends State<GalleryAccess> {
                 ],
               ),
             ),
-            Positioned(
-              left: screenWidth *
-                  0.35, // Adjust the position based on the screen width
-              bottom: screenHeight *
-                  0.04, // Adjust the position based on the screen height
-              child: Container(
-                padding: EdgeInsets.all(screenWidth *
-                    0.1), // Adjust padding based on the screen width
-                child: Material(
-                  color: Color(0xFF462B9C),
-                  borderRadius: BorderRadius.circular(20.0),
-                  child: TextButton(
-                    onPressed: () {
-                      if (!isLoading) {
-                        setState(() {
-                          isResult = true;
-                        });
-                      }
-                    },
-                    child: Icon(
-                      Icons.message_outlined,
-                      color: Colors.white,
-                      size: screenWidth *
-                          0.10, // Adjust the button size based on the screen width
-                    ),
-                  ),
-                ),
-              ),
-            ),
             isResult
                 ? Expanded(
                     child: Align(
@@ -172,7 +269,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
                         height: 600,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(50),
-                          color: Color(0xff462b9c),
+                          color: Color.fromARGB(255, 255, 255, 255),
                         ),
                         padding: EdgeInsets.only(left: 20, right: 20, top: 20),
                         child: Align(
@@ -192,7 +289,8 @@ class _GalleryAccessState extends State<GalleryAccess> {
                                         style: TextStyle(
                                           fontSize: 32,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.white,
+                                          color: const Color.fromARGB(
+                                              255, 0, 0, 0),
                                         ),
                                       ),
                                       IconButton(
@@ -204,7 +302,9 @@ class _GalleryAccessState extends State<GalleryAccess> {
                                         },
                                         icon: Icon(
                                           Icons.close_outlined,
-                                          color: Colors.white,
+                                          color: const Color.fromARGB(
+                                              255, 0, 0, 0),
+                                          size: 35,
                                         ),
                                       ),
                                     ],
@@ -220,7 +320,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.white,
+                                      color: const Color.fromARGB(255, 0, 0, 0),
                                     ),
                                   ),
                                 ),

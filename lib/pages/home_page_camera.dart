@@ -16,6 +16,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'intro_screen.dart';
 import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
+import 'gpt.dart';
 
 void main() {
   runApp(const MyApp());
@@ -85,12 +86,130 @@ class _ARKitExampleState extends State<ARKitExample> {
             onARKitViewCreated: onARKitViewCreated,
           ),
           Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              height: 67,
+              color: Colors.black,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Padding added to move Button 1 to the right
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ChatApp(), // Navigate to the ChatApp page
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: const Color.fromARGB(255, 255, 255, 255),
+                        onPrimary: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: Container(
+                        width: 60,
+                        height: 27,
+                        child: Center(
+                          child: Text(
+                            'chat',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.black, // Change text color here
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+
+                  // Existing code...
+
+                  // Padding added to move Button 3 to the left
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Add your functionality here for Button 3
+                        print('Button 2 clicked!');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: Color.fromARGB(255, 249, 249, 249),
+                        onPrimary: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: Container(
+                        width: 60,
+                        height: 27,
+                        child: Center(
+                          child: Text(
+                            'show',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.black, // Change text color here
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Add some space between buttons
+                  SizedBox(width: 16),
+
+                  // Existing code...
+
+                  // Padding added to move Button 3 to the left
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Add your functionality here for Button 3
+                        print('Button 3 clicked!');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: const Color.fromARGB(255, 255, 255, 255),
+                        onPrimary: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: Container(
+                        width: 60,
+                        height: 27,
+                        child: Center(
+                          child: Text(
+                            'assistant',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.black, // Change text color here
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Align(
             alignment: Alignment.topCenter,
             child: Column(
               children: [
                 Container(
                   height: 80,
-                  margin: EdgeInsets.only(top: 40.0, left: 10.0, right: 10.0),
+                  margin: EdgeInsets.only(top: 40.0, left: .0, right: 10.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -105,7 +224,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                         },
                         icon: Icon(
                           Icons.arrow_back_ios_new_outlined,
-                          color: Colors.black,
+                          color: Colors.white,
                         ),
                         iconSize: 35,
                       ),
@@ -141,7 +260,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                   Container(
                     padding: EdgeInsets.all(16.0),
                     child: Material(
-                      color: Color(0xFF462B9C),
+                      color: Color.fromARGB(255, 254, 254, 254),
                       borderRadius: BorderRadius.circular(20.0),
                       child: IconButton(
                         onPressed: () {
@@ -149,8 +268,8 @@ class _ARKitExampleState extends State<ARKitExample> {
                         },
                         icon: Icon(
                           Icons.photo_library_outlined,
-                          color: Colors.white,
-                          size: screenWidth * 0.04, // Adjust the b
+                          color: Colors.black,
+                          size: screenWidth * 0.08, // Adjust the b
                         ),
                       ),
                     ),
@@ -189,34 +308,12 @@ class _ARKitExampleState extends State<ARKitExample> {
                     ),
                     child: Container(
                       width: isIpad ? 120.0 : 100.0,
-                      height: isIpad ? 120.0 : 100.0,
+                      height: isIpad ? 100.0 : 80.0,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: Colors.black,
                           width: 8.0,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(16.0),
-                    child: Material(
-                      color: Color(0xFF462B9C),
-                      borderRadius: BorderRadius.circular(20.0),
-                      child: IconButton(
-                        onPressed: () {
-                          if (!isLoading) {
-                            setState(() {
-                              isMessageOpen = true;
-                            });
-                            toggleSpeech(); // Start or stop the speech based on the current state
-                          }
-                        },
-                        icon: Icon(
-                          Icons.message_outlined,
-                          color: Colors.white,
-                          size: screenWidth * 0.04, // Adjust the b
                         ),
                       ),
                     ),
@@ -236,7 +333,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                   height: 600,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(50),
-                    color: Color(0xff462b9c),
+                    color: Color.fromARGB(255, 255, 255, 255),
                   ),
                   padding: EdgeInsets.only(left: 20, right: 20, top: 20),
                   child: Align(
@@ -255,7 +352,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                                   style: TextStyle(
                                     fontSize: 32,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: const Color.fromARGB(255, 0, 0, 0),
                                   ),
                                 ),
                                 IconButton(
@@ -268,7 +365,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                                   },
                                   icon: Icon(
                                     Icons.close_outlined,
-                                    color: Colors.white,
+                                    color: const Color.fromARGB(255, 0, 0, 0),
                                   ),
                                 ),
                               ],
@@ -280,7 +377,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: const Color.fromARGB(255, 0, 0, 0),
                           ),
                         ),
                       ],

@@ -17,51 +17,87 @@ class _ChatAppState extends State<ChatApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Chat with Object'),
-        ),
-        body: Column(
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 213, 211, 211),
+        title: Row(
           children: [
-            Expanded(
-              child: ListView.builder(
-                itemCount: _chatMessages.length,
-                itemBuilder: (context, index) {
-                  return _chatMessages[index];
-                },
-              ),
+            CircleAvatar(
+              backgroundImage: AssetImage('lib/images/chat_icon.png'),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      decoration: InputDecoration(hintText: 'Type a message...'),
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.send),
-                    onPressed: () {
-                      String message = _messageController.text.trim();
-                      if (message.isNotEmpty) {
-                        _sendMessage(message);
-                        _messageController.clear();
-                      }
-                    },
-                  ),
-                ],
-              ),
+            SizedBox(width: 10),
+            Text(
+              'Object',
+              style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold),
             ),
           ],
         ),
       ),
+      body: Stack(
+        children: [
+          _buildChatMessages(),
+          Positioned(
+            bottom: 20, // Adjust the distance from the bottom as needed
+            left: 20,
+            right: 0,
+            child: _buildMessageInput(),
+          ),
+        ],
+      ),
     );
   }
 
-  Future<void> _sendMessage(String message) async {
+  Widget _buildChatMessages() {
+    return Expanded(
+      child: ListView.builder(
+        itemCount: _chatMessages.length,
+        itemBuilder: (context, index) {
+          return _chatMessages[index];
+        },
+      ),
+    );
+  }
+
+  Widget _buildMessageInput() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      color: Colors.white,
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: TextField(
+                controller: _messageController,
+                decoration: InputDecoration(
+                  hintText: 'Type a message...',
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.send),
+            onPressed: () {
+              String message = _messageController.text.trim();
+              if (message.isNotEmpty) {
+                _sendMessage(message);
+                _messageController.clear();
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+    Future<void> _sendMessage(String message) async {
     setState(() {
       _chatMessages.add(ChatMessage(sender: 'You', text: message));
     });
@@ -95,30 +131,68 @@ class _ChatAppState extends State<ChatApp> {
   }
 }
 
+
+  void _sendMessage(String message) {
+    setState(() {
+      _chatMessages
+          .add(ChatMessage(sender: 'You', text: message, isUser: true));
+    });
+
+    // Simulating a response after 1 second
+    Future.delayed(Duration(seconds: 1), () {
+      setState(() {
+        _chatMessages.add(ChatMessage(
+          sender: 'John Doe',
+          text: 'Received: $message',
+          isUser: false,
+        ));
+      });
+    });
+  }
+}
+
 class ChatMessage extends StatelessWidget {
   final String sender;
   final String text;
+  final bool isUser;
 
-  ChatMessage({required this.sender, required this.text});
+  const ChatMessage(
+      {required this.sender, required this.text, this.isUser = true});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Align(
-        alignment: sender == 'You' ? Alignment.centerRight : Alignment.centerLeft,
+        alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
-          padding: EdgeInsets.all(12.0),
+          padding: EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: sender == 'You' ? Colors.blue : Colors.green,
-            borderRadius: BorderRadius.circular(16.0),
+            color: isUser
+                ? Color.fromARGB(255, 48, 162, 255)
+                : Color.fromARGB(255, 214, 218, 214),
+            borderRadius: BorderRadius.circular(20),
           ),
-          child: Text(
-            text,
-            style: TextStyle(color: Colors.white, fontSize: 16.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!isUser)
+                Icon(Icons.account_circle, color: Colors.white, size: 28),
+              SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  text,
+                  style: TextStyle(
+                    color: isUser ? Colors.white : Colors.black,
+                    fontSize: 20,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 }
+
