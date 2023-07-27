@@ -138,6 +138,11 @@ class _ARKitExampleState extends State<ARKitExample> {
                     padding: const EdgeInsets.only(left: 8.0),
                     child: ElevatedButton(
                       onPressed: () {
+                        if (!isLoading) {
+                          setState(() {
+                            isResult = true;
+                          });
+                        }
                         // Add your functionality here for Button 3
                         print('Button 2 clicked!');
                       },
@@ -318,6 +323,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                       ),
                     ),
                   ),
+                  Container()
                 ],
               ),
             ),

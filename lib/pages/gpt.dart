@@ -6,71 +6,120 @@ void main() {
   runApp(ChatApp());
 }
 
-class ChatApp extends StatefulWidget {
-  @override
-  _ChatAppState createState() => _ChatAppState();
-}
-
-class _ChatAppState extends State<ChatApp> {
-  TextEditingController _messageController = TextEditingController();
-  List<ChatMessage> _chatMessages = [];
-
+class ChatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
+      debugShowCheckedModeBanner: false,
+      home: ChatPage(),
+    );
+  }
+}
+
+class ChatPage extends StatefulWidget {
+  @override
+  _ChatPageState createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  final TextEditingController _messageController = TextEditingController();
+  final List<ChatMessage> _chatMessages = [];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
         appBar: AppBar(
-          title: Text('Chat with Object'),
+          backgroundColor: Color.fromARGB(255, 213, 211, 211),
+          title: Row(
+            children: [
+              CircleAvatar(
+                backgroundImage: AssetImage('lib/images/chat_icon.png'),
+              ),
+              SizedBox(width: 10),
+              Text(
+                'Object',
+                style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                itemCount: _chatMessages.length,
-                itemBuilder: (context, index) {
-                  return _chatMessages[index];
-                },
+        body: Container(
+          color: Colors.white, // Set the background color to white
+          child: Stack(
+            children: [
+              _buildChatMessages(),
+              Positioned(
+                bottom: 20, // Adjust the distance from the bottom as needed
+                left: 20,
+                right: 0,
+                child: _buildMessageInput(),
+              ),
+            ],
+          ),
+        ));
+  }
+
+  Widget _buildChatMessages() {
+    return Expanded(
+      child: ListView.builder(
+        itemCount: _chatMessages.length,
+        itemBuilder: (context, index) {
+          return _chatMessages[index];
+        },
+      ),
+    );
+  }
+
+  Widget _buildMessageInput() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      color: Color.fromARGB(255, 255, 255, 255),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: TextField(
+                controller: _messageController,
+                decoration: InputDecoration(
+                  hintText: 'Type a message...',
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                  border: InputBorder.none,
+                ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      decoration:
-                          InputDecoration(hintText: 'Type a message...'),
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.send),
-                    onPressed: () {
-                      String message = _messageController.text.trim();
-                      if (message.isNotEmpty) {
-                        _sendMessage(message);
-                        _messageController.clear();
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+          IconButton(
+            icon: Icon(Icons.send),
+            onPressed: () {
+              String message = _messageController.text.trim();
+              if (message.isNotEmpty) {
+                _sendMessage(message);
+                _messageController.clear();
+              }
+            },
+          ),
+        ],
       ),
     );
   }
 
   Future<void> _sendMessage(String message) async {
     setState(() {
-      _chatMessages.add(ChatMessage(sender: 'You', text: message));
+      _chatMessages
+          .add(ChatMessage(sender: 'You', text: message, isUser: true));
     });
 
     try {
       var response = await http.post(
         Uri.parse(
-            'http://127.0.0.1:8000//chat_with_chatgpt'), // Replace with your backend URL
+            'http://127.0.0.1:8000/chat_with_chatgpt'), // Replace with your backend URL
         headers: {
           'Content-Type': 'application/json',
         },
@@ -82,18 +131,28 @@ class _ChatAppState extends State<ChatApp> {
         String chatGptResponse = responseBody['response'];
 
         setState(() {
-          _chatMessages
-              .add(ChatMessage(sender: 'Object', text: chatGptResponse));
+          _chatMessages.add(ChatMessage(
+            sender: 'Object',
+            text: chatGptResponse,
+            isUser: false, // Set isUser to false for response messages
+          ));
         });
       } else {
         setState(() {
           _chatMessages.add(ChatMessage(
-              sender: 'Object', text: 'Error: ${response.statusCode}'));
+            sender: 'Object',
+            text: 'Error: ${response.statusCode}',
+            isUser: false, // Set isUser to false for error messages
+          ));
         });
       }
     } catch (e) {
       setState(() {
-        _chatMessages.add(ChatMessage(sender: 'Object', text: 'Error: $e'));
+        _chatMessages.add(ChatMessage(
+          sender: 'Object',
+          text: 'Error: $e',
+          isUser: false, // Set isUser to false for error messages
+        ));
       });
     }
   }
@@ -102,25 +161,41 @@ class _ChatAppState extends State<ChatApp> {
 class ChatMessage extends StatelessWidget {
   final String sender;
   final String text;
+  final bool isUser;
 
-  ChatMessage({required this.sender, required this.text});
+  const ChatMessage(
+      {required this.sender, required this.text, this.isUser = true});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Align(
-        alignment:
-            sender == 'You' ? Alignment.centerRight : Alignment.centerLeft,
+        alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
-          padding: EdgeInsets.all(12.0),
+          padding: EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: sender == 'You' ? Colors.blue : Colors.green,
-            borderRadius: BorderRadius.circular(16.0),
+            color: isUser
+                ? Color.fromARGB(255, 48, 162, 255)
+                : Color.fromARGB(255, 214, 218, 214),
+            borderRadius: BorderRadius.circular(20),
           ),
-          child: Text(
-            text,
-            style: TextStyle(color: Colors.white, fontSize: 16.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!isUser)
+                Icon(Icons.account_circle, color: Colors.white, size: 28),
+              SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  text,
+                  style: TextStyle(
+                    color: isUser ? Colors.white : Colors.black,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
