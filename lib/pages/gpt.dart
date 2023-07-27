@@ -24,6 +24,16 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final List<ChatMessage> _chatMessages = [];
+  @override
+  void initState() {
+    super.initState();
+    // Add the initial message when the page loads
+    _chatMessages.add(ChatMessage(
+      sender: 'Object',
+      text: 'Hi you can ask any question about me',
+      isUser: false,
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -171,7 +181,10 @@ class ChatMessage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Align(
-        alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+        alignment: isUser
+            ? Alignment.centerRight
+            : Alignment
+                .centerLeft, // Align the chat bubble to the right or left
         child: Container(
           padding: EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -182,6 +195,8 @@ class ChatMessage extends StatelessWidget {
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment:
+                CrossAxisAlignment.end, // Align the icon to the bottom
             children: [
               if (!isUser)
                 Icon(Icons.account_circle, color: Colors.white, size: 28),

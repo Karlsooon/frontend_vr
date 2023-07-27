@@ -96,7 +96,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                 children: [
                   // Padding added to move Button 1 to the right
                   Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
+                    padding: const EdgeInsets.only(right: 90.0),
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.push(
@@ -115,13 +115,13 @@ class _ARKitExampleState extends State<ARKitExample> {
                         ),
                       ),
                       child: Container(
-                        width: 60,
+                        width: 90,
                         height: 27,
                         child: Center(
                           child: Text(
                             'chat',
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 16,
                               color: Colors.black, // Change text color here
                             ),
                           ),
@@ -154,13 +154,13 @@ class _ARKitExampleState extends State<ARKitExample> {
                         ),
                       ),
                       child: Container(
-                        width: 60,
+                        width: 90,
                         height: 27,
                         child: Center(
                           child: Text(
                             'show',
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 16,
                               color: Colors.black, // Change text color here
                             ),
                           ),
@@ -170,40 +170,11 @@ class _ARKitExampleState extends State<ARKitExample> {
                   ),
 
                   // Add some space between buttons
-                  SizedBox(width: 16),
+                  SizedBox(width: 0),
 
                   // Existing code...
 
                   // Padding added to move Button 3 to the left
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Add your functionality here for Button 3
-                        print('Button 3 clicked!');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        primary: const Color.fromARGB(255, 255, 255, 255),
-                        onPrimary: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: Container(
-                        width: 60,
-                        height: 27,
-                        child: Center(
-                          child: Text(
-                            'assistant',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.black, // Change text color here
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
