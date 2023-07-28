@@ -96,7 +96,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                 children: [
                   // Padding added to move Button 1 to the right
                   Padding(
-                    padding: const EdgeInsets.only(right: 90.0),
+                    padding: const EdgeInsets.only(left: 30.0),
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.push(
@@ -115,7 +115,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                         ),
                       ),
                       child: Container(
-                        width: 90,
+                        width: 80,
                         height: 27,
                         child: Center(
                           child: Text(
@@ -135,7 +135,7 @@ class _ARKitExampleState extends State<ARKitExample> {
 
                   // Padding added to move Button 3 to the left
                   Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
+                    padding: const EdgeInsets.only(right: 1.0),
                     child: ElevatedButton(
                       onPressed: () {
                         if (!isLoading) {
@@ -154,7 +154,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                         ),
                       ),
                       child: Container(
-                        width: 90,
+                        width: 80,
                         height: 27,
                         child: Center(
                           child: Text(
@@ -245,56 +245,73 @@ class _ARKitExampleState extends State<ARKitExample> {
                         icon: Icon(
                           Icons.photo_library_outlined,
                           color: Colors.black,
-                          size: screenWidth * 0.08, // Adjust the b
-                        ),
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (isLoading) return;
-                      print('sent!');
-                      setState(() {
-                        isLoading = true;
-                      });
-                      final image = await arkitController.snapshot();
-                      final imageFile = await _getImageFileFromProvider(image);
-                      final result = await getGptResultFromBackend(imageFile);
-                      print(result);
-                      setState(() {
-                        isLoading = false;
-                      });
-                      if (result != null) {
-                        setState(() {
-                          isResult = true;
-                          resultData = result;
-                          isMessageOpen =
-                              true; // Open the message page automatically
-                        });
-                        toggleSpeech(); // Start speaking the result
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding:
-                          isIpad ? EdgeInsets.all(10.0) : EdgeInsets.all(5.0),
-                      shape: CircleBorder(),
-                      primary: Colors.white,
-                      onPrimary: Colors.black,
-                      elevation: 4.0,
-                    ),
-                    child: Container(
-                      width: isIpad ? 120.0 : 100.0,
-                      height: isIpad ? 100.0 : 80.0,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.black,
-                          width: 8.0,
+                          size: screenWidth * 0.10, // Adjust the b
                         ),
                       ),
                     ),
                   ),
                   Container()
+                ],
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              height: 160,
+              margin: EdgeInsets.only(bottom: 40.0),
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  Positioned(
+                    bottom: 40,
+                    left: screenWidth / 2 - (isIpad ? 60.0 : 50.0),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (isLoading) return;
+                        print('sent!');
+                        setState(() {
+                          isLoading = true;
+                        });
+                        final image = await arkitController.snapshot();
+                        final imageFile =
+                            await _getImageFileFromProvider(image);
+                        final result = await getGptResultFromBackend(imageFile);
+                        print(result);
+                        setState(() {
+                          isLoading = false;
+                        });
+                        if (result != null) {
+                          setState(() {
+                            isResult = true;
+                            resultData = result;
+                            isMessageOpen =
+                                true; // Open the message page automatically
+                          });
+                          toggleSpeech(); // Start speaking the result
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding:
+                            isIpad ? EdgeInsets.all(10.0) : EdgeInsets.all(5.0),
+                        shape: CircleBorder(),
+                        primary: Colors.white,
+                        onPrimary: Colors.black,
+                        elevation: 4.0,
+                      ),
+                      child: Container(
+                        width: isIpad ? 120.0 : 90.0,
+                        height: isIpad ? 100.0 : 90.0,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.black,
+                            width: 8.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

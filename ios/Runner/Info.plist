@@ -32,7 +32,7 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string></string>
+	<string>AR Lense use camera to detect objects through the camera</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app needs access to microphone when used</string>
 	<key>NSPhotoLibraryUsageDescription</key>

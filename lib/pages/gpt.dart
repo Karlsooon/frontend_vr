@@ -129,7 +129,7 @@ class _ChatPageState extends State<ChatPage> {
     try {
       var response = await http.post(
         Uri.parse(
-            'http://127.0.0.1:8000/chat_with_chatgpt'), // Replace with your backend URL
+            'http://35.234.108.24:8000/chat_with_chatgpt'), // Replace with your backend URL
         headers: {
           'Content-Type': 'application/json',
         },
