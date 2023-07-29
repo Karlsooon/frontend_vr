@@ -28,7 +28,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   void initState() {
     super.initState();
     // Replace 'assets/your_video_path.mp4' with the actual path to your video file.
-    _controller = VideoPlayerController.asset('lib/images/video.mp4');
+    _controller = VideoPlayerController.asset('lib/images/IMG_2457.mp4');
     _initializeVideoPlayerFuture = _controller.initialize().then((_) {
       // Additional processing if needed after video initialization.
     });
@@ -58,16 +58,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       appBar: AppBar(
         title: Text('Video Player'),
       ),
-      backgroundColor:
-          Color.fromARGB(255, 240, 242, 242), // Set the background color here
+      backgroundColor: Color.fromARGB(255, 240, 242, 242), // Set the background color here
       body: Center(
         child: FutureBuilder(
           future: _initializeVideoPlayerFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
-              return AspectRatio(
-                aspectRatio: _controller.value.aspectRatio,
-                child: VideoPlayer(_controller),
+              return Padding(
+                padding: EdgeInsets.only(top: 350.0), // Adjust the value to move the video down
+                child: AspectRatio(
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: VideoPlayer(_controller),
+                ),
               );
             } else {
               return CircularProgressIndicator();
