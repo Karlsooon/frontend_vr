@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'home_page_camera.dart';
+import 'assistant_page.dart';
+
 
 class IntroScreen extends StatelessWidget {
   const IntroScreen({Key? key});
@@ -85,7 +87,8 @@ class IntroScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) {
-                            return ARKitExample(func: print);
+                            // return ARKitExample(func: print);
+                            return VideoPlayerApp();
                           },
                         ),
                       ),
