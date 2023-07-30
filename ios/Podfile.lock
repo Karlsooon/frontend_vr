@@ -1,6 +1,10 @@
 PODS:
   - arkit_plugin (0.0.1):
     - Flutter
+  - assets_audio_player (0.0.1):
+    - Flutter
+  - assets_audio_player_web (0.0.1):
+    - Flutter
   - camera_avfoundation (0.0.1):
     - Flutter
   - Flutter (1.0.0)
@@ -46,6 +50,8 @@ PODS:
   - SDWebImageWebPCoder (0.13.0):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
+  - text_to_speech (0.0.1):
+    - Flutter
   - video_player_avfoundation (0.0.1):
     - Flutter
   - wakelock_plus (0.0.1):
@@ -53,6 +59,8 @@ PODS:
 
 DEPENDENCIES:
   - arkit_plugin (from `.symlinks/plugins/arkit_plugin/ios`)
+  - assets_audio_player (from `.symlinks/plugins/assets_audio_player/ios`)
+  - assets_audio_player_web (from `.symlinks/plugins/assets_audio_player_web/ios`)
   - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
   - Flutter (from `Flutter`)
   - flutter_image_compress_common (from `.symlinks/plugins/flutter_image_compress_common/ios`)
@@ -64,6 +72,7 @@ DEPENDENCIES:
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - text_to_speech (from `.symlinks/plugins/text_to_speech/ios`)
   - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/ios`)
   - wakelock_plus (from `.symlinks/plugins/wakelock_plus/ios`)
 
@@ -78,6 +87,10 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   arkit_plugin:
     :path: ".symlinks/plugins/arkit_plugin/ios"
+  assets_audio_player:
+    :path: ".symlinks/plugins/assets_audio_player/ios"
+  assets_audio_player_web:
+    :path: ".symlinks/plugins/assets_audio_player_web/ios"
   camera_avfoundation:
     :path: ".symlinks/plugins/camera_avfoundation/ios"
   Flutter:
@@ -100,6 +113,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
+  text_to_speech:
+    :path: ".symlinks/plugins/text_to_speech/ios"
   video_player_avfoundation:
     :path: ".symlinks/plugins/video_player_avfoundation/ios"
   wakelock_plus:
@@ -107,6 +122,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   arkit_plugin: 3e42571e8be84adabb8a178bd51c22fa981e16bd
+  assets_audio_player: edee322b9cb625571b830b35872ead1a295fd917
+  assets_audio_player_web: 19826380c44375761aa0b9053665c1e3fbc3b86b
   camera_avfoundation: 3125e8cd1a4387f6f31c6c63abb8a55892a9eeeb
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   flutter_image_compress_common: ec1d45c362c9d30a3f6a0426c297f47c52007e3e
@@ -123,6 +140,7 @@ SPEC CHECKSUMS:
   permission_handler_apple: e76247795d700c14ea09e3a2d8855d41ee80a2e6
   SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
   SDWebImageWebPCoder: af09429398d99d524cae2fe00f6f0f6e491ed102
+  text_to_speech: 8669facdbd5b72d2939b810493defd991634f6f9
   video_player_avfoundation: 81e49bb3d9fb63dccf9fa0f6d877dc3ddbeac126
   wakelock_plus: 8b09852c8876491e4b6d179e17dfe2a0b5f60d47
 

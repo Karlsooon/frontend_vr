@@ -59,8 +59,9 @@ dependencies:
   chewie: ^1.7.0
   provider: ^6.0.0
   flutter_sound: ^9.2.13
-  mic_stream: ^0.6.5
-  flutter_sound: ^9.2.13
+  assets_audio_player: ^3.0.6
+  text_to_speech: ^0.2.3
+  # audioplayers: ^5.0.0
   path: any
 
 flutter_launcher_icons:

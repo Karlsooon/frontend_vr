@@ -2,8 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>Microphone access required</string>
+    <!-- <key>NSMicrophoneUsageDescription</key>
+    <string>Microphone access required</string> -->
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -36,7 +36,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>AR Lense use camera to detect objects through the camera</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>This app needs access to microphone when used</string>
+	<string>Enable microphone access to play audio</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Access to the photo library is required to select images for upload.</string>
 	<key>UIAppFonts</key>
