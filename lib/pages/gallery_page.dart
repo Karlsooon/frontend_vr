@@ -230,7 +230,7 @@ class _GalleryAccessState extends State<GalleryAccess> {
                       child: Container(
                         width: double
                             .infinity, // Make the container fill the entire width
-                        height: 600,
+                        height: 800,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(50),
                           color: Color.fromARGB(255, 255, 255, 255),

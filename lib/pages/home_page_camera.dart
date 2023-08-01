@@ -324,7 +324,7 @@ class _ARKitExampleState extends State<ARKitExample> {
                 alignment: FractionalOffset.bottomCenter,
                 child: Container(
                   width: 430,
-                  height: 600,
+                  height: 800,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(50),
                     color: Color.fromARGB(255, 255, 255, 255),
