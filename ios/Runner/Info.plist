@@ -36,7 +36,7 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Enable microphone access to play audio</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Access to the photo library is required to select images for upload.</string>
+	<string>AR Lense ask access to use the photo to detect objects from the photo</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>icon.png</string>

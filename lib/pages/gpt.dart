@@ -24,6 +24,7 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final List<ChatMessage> _chatMessages = [];
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -78,6 +79,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildChatMessages() {
     return ListView.builder(
+      controller: _scrollController,
       itemCount: _chatMessages.length,
       itemBuilder: (context, index) {
         return _chatMessages[index];
@@ -166,6 +168,13 @@ class _ChatPageState extends State<ChatPage> {
         ));
       });
     }
+
+    // Automatically scroll to the end after adding the message
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 }
 

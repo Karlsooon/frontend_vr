@@ -110,47 +110,47 @@ class _GalleryAccessState extends State<GalleryAccess> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Padding added to move Button 1 to the right
-                    Padding(
-                      padding: const EdgeInsets.only(left: 30.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  ChatApp(), // Navigate to the ChatApp page
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          primary: const Color.fromARGB(255, 255, 255, 255),
-                          onPrimary: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: Container(
-                          width: 80,
-                          height: 27,
-                          child: Center(
-                            child: Text(
-                              'chat',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black, // Change text color here
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    // Padding(
+                    //   padding: const EdgeInsets.only(left: 30.0),
+                    //   child: ElevatedButton(
+                    //     onPressed: () {
+                    //       Navigator.push(
+                    //         context,
+                    //         MaterialPageRoute(
+                    //           builder: (context) =>
+                    //               ChatApp(), // Navigate to the ChatApp page
+                    //         ),
+                    //       );
+                    //     },
+                    //     style: ElevatedButton.styleFrom(
+                    //       primary: const Color.fromARGB(255, 255, 255, 255),
+                    //       onPrimary: Colors.white,
+                    //       shape: RoundedRectangleBorder(
+                    //         borderRadius: BorderRadius.circular(20),
+                    //       ),
+                    //     ),
+                    //     child: Container(
+                    //       width: 80,
+                    //       height: 27,
+                    //       child: Center(
+                    //         child: Text(
+                    //           'chat',
+                    //           style: TextStyle(
+                    //             fontSize: 16,
+                    //             color: Colors.black, // Change text color here
+                    //           ),
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                     SizedBox(width: 16),
 
                     // Existing code...
 
                     // Padding added to move Button 3 to the left
                     Padding(
-                      padding: const EdgeInsets.only(right: 18.0),
+                      padding: const EdgeInsets.only(right: 120.0),
                       child: ElevatedButton(
                         onPressed: () {
                           if (!isLoading) {
